@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 990 480" preserveAspectRatio="xMaxYMax slice">
+  <defs>
+    <linearGradient id="a" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#b9a2ff" stop-opacity="0.55"/>
+    </linearGradient>
+    <linearGradient id="b" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#8b5cf6" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#7c3aed" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#4f1fe0" stop-opacity="0.75"/>
+    </linearGradient>
+    <linearGradient id="c" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#6d28d9" stop-opacity="0"/>
+      <stop offset="1" stop-color="#2a0fa8" stop-opacity="0.55"/>
+    </linearGradient>
+    <filter id="s" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="5"/></filter>
+    <filter id="t" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="14"/></filter>
+  </defs>
+  <path d="M300 480 C 520 430, 700 330, 990 150 L 990 480 Z" fill="url(#a)" filter="url(#t)" opacity="0.7"/>
+  <path d="M430 480 C 600 420, 780 340, 990 230 L 990 300 C 800 380, 660 440, 560 480 Z" fill="url(#b)" filter="url(#s)"/>
+  <path d="M600 480 C 720 430, 860 380, 990 320 L 990 400 C 900 430, 800 460, 740 480 Z" fill="url(#c)" filter="url(#s)"/>
+  <path d="M360 480 C 560 400, 760 300, 990 190" fill="none" stroke="#ffffff" stroke-opacity="0.8" stroke-width="2"/>
+  <path d="M480 480 C 660 410, 820 340, 990 262" fill="none" stroke="#c4b5fd" stroke-opacity="0.8" stroke-width="1.5"/>
+  <path d="M660 480 C 780 440, 900 400, 990 360" fill="none" stroke="#a78bfa" stroke-opacity="0.7" stroke-width="1.5"/>
+</svg>

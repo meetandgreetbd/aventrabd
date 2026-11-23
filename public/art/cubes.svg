@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 660">
+<defs>
+<filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="10"/></filter>
+<filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="30"/></filter>
+<linearGradient id="topSolid" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#efeaff" stop-opacity="1"/><stop offset="1" stop-color="#b3a0ff" stop-opacity="1"/></linearGradient>
+<linearGradient id="leftSolid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7b5cf5" stop-opacity="1"/><stop offset="1" stop-color="#3a1bc0" stop-opacity="1"/></linearGradient>
+<linearGradient id="rightSolid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a1bc0" stop-opacity="1"/><stop offset="1" stop-color="#14064f" stop-opacity="1"/></linearGradient>
+<linearGradient id="topGlass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/><stop offset="1" stop-color="#dcd6ff" stop-opacity="0.6"/></linearGradient>
+<linearGradient id="leftGlass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.7"/><stop offset="1" stop-color="#c5bcf2" stop-opacity="0.35"/></linearGradient>
+<linearGradient id="rightGlass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bdb4ee" stop-opacity="0.6"/><stop offset="1" stop-color="#8279c4" stop-opacity="0.4"/></linearGradient>
+</defs>
+<ellipse cx="330" cy="330" rx="220" ry="250" fill="#7c5cf5" opacity="0.22" filter="url(#glow)"/>
+<ellipse cx="340" cy="590" rx="210" ry="34" fill="#1b1250" opacity="0.22" filter="url(#soft)"/>
+<g>
+  <polygon points="194.9,392 262.5,431 262.5,509 194.9,470" fill="url(#leftGlass)"/>
+  <polygon points="262.5,431 330,392 330,470 262.5,509" fill="url(#rightGlass)"/>
+  <polygon points="262.5,353 330,392 262.5,431 194.9,392" fill="url(#topGlass)"/>
+  <path d="M 194.9,392 L 262.5,431 L 330,392 M 262.5,431 L 262.5,509" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.9"/>
+  <polygon points="262.5,353 330,392 330,470 262.5,509 194.9,470 194.9,392" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.55"/>
+</g>
+<g>
+  <polygon points="330,392 397.5,431 397.5,509 330,470" fill="url(#leftSolid)"/>
+  <polygon points="397.5,431 465.1,392 465.1,470 397.5,509" fill="url(#rightSolid)"/>
+  <polygon points="397.5,353 465.1,392 397.5,431 330,392" fill="url(#topSolid)"/>
+  <path d="M 330,392 L 397.5,431 L 465.1,392 M 397.5,431 L 397.5,509" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.9"/>
+  <polygon points="397.5,353 465.1,392 465.1,470 397.5,509 330,470 330,392" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.55"/>
+</g>
+<g>
+  <polygon points="262.5,431 330,470 330,548 262.5,509" fill="url(#leftSolid)"/>
+  <polygon points="330,470 397.5,431 397.5,509 330,548" fill="url(#rightSolid)"/>
+  <polygon points="330,392 397.5,431 330,470 262.5,431" fill="url(#topSolid)"/>
+  <path d="M 262.5,431 L 330,470 L 397.5,431 M 330,470 L 330,548" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.9"/>
+  <polygon points="330,392 397.5,431 397.5,509 330,548 262.5,509 262.5,431" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.55"/>
+</g>
+<g>
+  <polygon points="330,470 397.5,509 397.5,587 330,548" fill="url(#leftGlass)"/>
+  <polygon points="397.5,509 465.1,470 465.1,548 397.5,587" fill="url(#rightGlass)"/>
+  <polygon points="397.5,431 465.1,470 397.5,509 330,470" fill="url(#topGlass)"/>
+  <path d="M 330,470 L 397.5,509 L 465.1,470 M 397.5,509 L 397.5,587" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.9"/>
+  <polygon points="397.5,431 465.1,470 465.1,548 397.5,587 330,548 330,470" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.55"/>
+</g>
+<g>
+  <polygon points="194.9,470 262.5,509 262.5,587 194.9,548" fill="url(#leftSolid)"/>
+  <polygon points="262.5,509 330,470 330,548 262.5,587" fill="url(#rightSolid)"/>
+  <polygon points="262.5,431 330,470 262.5,509 194.9,470" fill="url(#topSolid)"/>
+  <path d="M 194.9,470 L 262.5,509 L 330,470 M 262.5,509 L 262.5,587" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.9"/>
+  <polygon points="262.5,431 330,470 330,548 262.5,587 194.9,548 194.9,470" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.55"/>
+</g>
+<g>
+  <polygon points="194.9,314 262.5,353 262.5,431 194.9,392" fill="url(#leftSolid)"/>
+  <polygon points="262.5,353 330,314 330,392 262.5,431" fill="url(#rightSolid)"/>
+  <polygon points="262.5,275 330,314 262.5,353 194.9,314" fill="url(#topSolid)"/>
+  <path d="M 194.9,314 L 262.5,353 L 330,314 M 262.5,353 L 262.5,431" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.9"/>
+  <polygon points="262.5,275 330,314 330,392 262.5,431 194.9,392 194.9,314" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.55"/>
+</g>
+<g>
+  <polygon points="330,314 397.5,353 397.5,431 330,392" fill="url(#leftGlass)"/>
+  <polygon points="397.5,353 465.1,314 465.1,392 397.5,431" fill="url(#rightGlass)"/>
+  <polygon points="397.5,275 465.1,314 397.5,353 330,314" fill="url(#topGlass)"/>
+  <path d="M 330,314 L 397.5,353 L 465.1,314 M 397.5,353 L 397.5,431" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.9"/>
+  <polygon points="397.5,275 465.1,314 465.1,392 397.5,431 330,392 330,314" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.55"/>
+</g>
+<g>
+  <polygon points="262.5,353 330,392 330,470 262.5,431" fill="url(#leftGlass)"/>
+  <polygon points="330,392 397.5,353 397.5,431 330,470" fill="url(#rightGlass)"/>
+  <polygon points="330,314 397.5,353 330,392 262.5,353" fill="url(#topGlass)"/>
+  <path d="M 262.5,353 L 330,392 L 397.5,353 M 330,392 L 330,470" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.9"/>
+  <polygon points="330,314 397.5,353 397.5,431 330,470 262.5,431 262.5,353" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.55"/>
+</g>
+<g>
+  <polygon points="330,392 397.5,431 397.5,509 330,470" fill="url(#leftSolid)"/>
+  <polygon points="397.5,431 465.1,392 465.1,470 397.5,509" fill="url(#rightSolid)"/>
+  <polygon points="397.5,353 465.1,392 397.5,431 330,392" fill="url(#topSolid)"/>
+  <path d="M 330,392 L 397.5,431 L 465.1,392 M 397.5,431 L 397.5,509" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.9"/>
+  <polygon points="397.5,353 465.1,392 465.1,470 397.5,509 330,470 330,392" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.55"/>
+</g>
+<g>
+  <polygon points="330,236 397.5,275 397.5,353 330,314" fill="url(#leftSolid)"/>
+  <polygon points="397.5,275 465.1,236 465.1,314 397.5,353" fill="url(#rightSolid)"/>
+  <polygon points="397.5,197 465.1,236 397.5,275 330,236" fill="url(#topSolid)"/>
+  <path d="M 330,236 L 397.5,275 L 465.1,236 M 397.5,275 L 397.5,353" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.9"/>
+  <polygon points="397.5,197 465.1,236 465.1,314 397.5,353 330,314 330,236" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.55"/>
+</g>
+<g>
+  <polygon points="262.5,275 330,314 330,392 262.5,353" fill="url(#leftSolid)"/>
+  <polygon points="330,314 397.5,275 397.5,353 330,392" fill="url(#rightSolid)"/>
+  <polygon points="330,236 397.5,275 330,314 262.5,275" fill="url(#topSolid)"/>
+  <path d="M 262.5,275 L 330,314 L 397.5,275 M 330,314 L 330,392" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.9"/>
+  <polygon points="330,236 397.5,275 397.5,353 330,392 262.5,353 262.5,275" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.55"/>
+</g>
+<g>
+  <polygon points="330,158 397.5,197 397.5,275 330,236" fill="url(#leftGlass)"/>
+  <polygon points="397.5,197 465.1,158 465.1,236 397.5,275" fill="url(#rightGlass)"/>
+  <polygon points="397.5,119 465.1,158 397.5,197 330,158" fill="url(#topGlass)"/>
+  <path d="M 330,158 L 397.5,197 L 465.1,158 M 397.5,197 L 397.5,275" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.9"/>
+  <polygon points="397.5,119 465.1,158 465.1,236 397.5,275 330,236 330,158" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.55"/>
+</g>
+</svg>

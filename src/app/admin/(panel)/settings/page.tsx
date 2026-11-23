@@ -1,0 +1,68 @@
+import { Card, Field, PageTitle, TextArea } from "@/components/admin/ui";
+import { ActionForm } from "@/components/forms/ActionForm";
+import { requireAdmin } from "@/lib/auth";
+import { getSettings } from "@/lib/cms";
+import { saveSettings } from "@/server/actions/content";
+
+export const metadata = { title: "Settings" };
+
+export default async function SettingsPage() {
+  await requireAdmin();
+  const settings = await getSettings();
+  const emailReady = Boolean(process.env.RESEND_API_KEY);
+
+  return (
+    <>
+      <PageTitle
+        title="Contact info & settings"
+        description="Shown on the Contact page and in the footer of every page."
+      />
+      <ActionForm action={saveSettings} submitLabel="Save settings" variant="admin" className="space-y-5">
+        <Card title="Contact information">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Phone" name="phone" defaultValue={settings.phone} maxLength={40} />
+            <Field label="Public email" name="email" type="email" defaultValue={settings.email} />
+          </div>
+          <TextArea label="Address" name="address" rows={2} defaultValue={settings.address} maxLength={300} />
+        </Card>
+
+        <Card title="Social links" description="Leave a link empty to hide its icon.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="LinkedIn" name="linkedin" type="url" defaultValue={settings.linkedin} />
+            <Field label="Facebook" name="facebook" type="url" defaultValue={settings.facebook} />
+            <Field label="YouTube" name="youtube" type="url" defaultValue={settings.youtube} />
+            <Field label="X" name="x" type="url" defaultValue={settings.x} />
+          </div>
+        </Card>
+
+        <Card title="Notifications">
+          <Field
+            label="Send new messages and applications to"
+            name="notifyEmail"
+            type="email"
+            defaultValue={settings.notifyEmail}
+            hint={
+              emailReady
+                ? "Leave empty to turn email notifications off. Everything is always saved in the admin."
+                : "Email sending is not configured on the server yet (RESEND_API_KEY is missing), so nothing is emailed. Everything is still saved in the admin."
+            }
+          />
+        </Card>
+
+        <Card title="Site details">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label="Site name"
+              name="siteName"
+              required
+              defaultValue={settings.siteName}
+              maxLength={80}
+              hint="Shown in the footer and after page titles, for example: About | Aventra"
+            />
+            <Field label="Footer tagline" name="tagline" defaultValue={settings.tagline} maxLength={160} />
+          </div>
+        </Card>
+      </ActionForm>
+    </>
+  );
+}
