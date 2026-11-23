@@ -35,18 +35,50 @@ export default async function SettingsPage() {
           </div>
         </Card>
 
-        <Card title="Notifications">
+        <Card
+          title="Email notifications"
+          description={
+            emailReady
+              ? "Choose who is emailed when something new arrives. Everything is always saved in the admin as well."
+              : "Email sending is not configured on the server yet (RESEND_API_KEY is missing), so nothing is emailed. Everything is still saved in the admin."
+          }
+        >
           <Field
-            label="Send new messages and applications to"
-            name="notifyEmail"
-            type="email"
-            defaultValue={settings.notifyEmail}
-            hint={
-              emailReady
-                ? "Leave empty to turn email notifications off. Everything is always saved in the admin."
-                : "Email sending is not configured on the server yet (RESEND_API_KEY is missing), so nothing is emailed. Everything is still saved in the admin."
-            }
+            label="Contact messages go to"
+            name="contactNotifyEmail"
+            defaultValue={settings.contactNotifyEmail}
+            maxLength={300}
+            hint="Who receives a new message from the Contact page. Several addresses can be separated by commas. Leave empty to turn off."
           />
+          <Field
+            label="Job applications go to"
+            name="applicationNotifyEmail"
+            defaultValue={settings.applicationNotifyEmail}
+            maxLength={300}
+            hint="Who receives a new job application. Several addresses can be separated by commas. Leave empty to turn off."
+          />
+        </Card>
+
+        <Card
+          title="Google tracking"
+          description="Added to every public page (never to the admin). Use Tag Manager or Analytics; if you load Analytics through Tag Manager, fill in only the Tag Manager ID so visits are not counted twice."
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label="Google Tag Manager container ID"
+              name="gtmId"
+              defaultValue={settings.gtmId}
+              maxLength={20}
+              hint="Looks like GTM-XXXXXXX. Leave empty if not used."
+            />
+            <Field
+              label="Google Analytics measurement ID"
+              name="gaId"
+              defaultValue={settings.gaId}
+              maxLength={20}
+              hint="Looks like G-XXXXXXXXXX. Leave empty if not used."
+            />
+          </div>
         </Card>
 
         <Card title="Site details">

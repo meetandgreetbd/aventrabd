@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { count, desc, eq } from "drizzle-orm";
-import { Badge, Empty, PageTitle, Table } from "@/components/admin/ui";
+import { Badge, Empty, PageTitle, RowActions, Table } from "@/components/admin/ui";
 import { getDb, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
+import { deleteJob } from "@/server/actions/jobs";
 import { formatDate, jobTypeLabel } from "@/lib/format";
 
 export const metadata = { title: "Job posts" };
@@ -13,6 +14,7 @@ export default async function JobsPage() {
     .select({
       id: schema.jobs.id,
       title: schema.jobs.title,
+      slug: schema.jobs.slug,
       type: schema.jobs.type,
       status: schema.jobs.status,
       deadline: schema.jobs.deadline,
@@ -33,7 +35,7 @@ export default async function JobsPage() {
       {rows.length === 0 ? (
         <Empty>No job posts yet. Create the first one.</Empty>
       ) : (
-        <Table head={["Title", "Type", "Status", "Deadline", "Applications"]}>
+        <Table head={["Title", "Type", "Status", "Deadline", "Applications", "Actions"]}>
           {rows.map((job) => (
             <tr key={job.id}>
               <td>
@@ -50,6 +52,13 @@ export default async function JobsPage() {
                 <Link href={`/admin/applications?job=${job.id}`} className="text-brand hover:underline">
                   {job.applications}
                 </Link>
+              </td>
+              <td>
+                <RowActions
+                  view={job.status === "draft" ? undefined : { href: `/careers/${job.slug}`, newTab: true }}
+                  edit={`/admin/jobs/${job.id}`}
+                  onDelete={deleteJob.bind(null, job.id)}
+                />
               </td>
             </tr>
           ))}

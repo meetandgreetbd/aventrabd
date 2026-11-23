@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { asc } from "drizzle-orm";
-import { Badge, PageTitle, Table } from "@/components/admin/ui";
+import { Badge, PageTitle, RowActions, Table } from "@/components/admin/ui";
 import { getDb, schema } from "@/db";
 import { requireAdmin } from "@/lib/auth";
+import { deleteUser } from "@/server/actions/users";
 import { formatDate } from "@/lib/format";
 
 export const metadata = { title: "Admin users" };
@@ -27,7 +28,7 @@ export default async function UsersPage() {
         description="Admins can do everything. Editors can manage content but not settings or users."
         action={{ href: "/admin/users/new", label: "New user" }}
       />
-      <Table head={["Name", "Email", "Role", "Added"]}>
+      <Table head={["Name", "Email", "Role", "Added", "Actions"]}>
         {rows.map((user) => (
           <tr key={user.id}>
             <td>
@@ -41,6 +42,12 @@ export default async function UsersPage() {
               <Badge value={user.role} />
             </td>
             <td>{formatDate(user.createdAt)}</td>
+            <td>
+              <RowActions
+                edit={`/admin/users/${user.id}`}
+                onDelete={user.id === current.id ? undefined : deleteUser.bind(null, user.id)}
+              />
+            </td>
           </tr>
         ))}
       </Table>

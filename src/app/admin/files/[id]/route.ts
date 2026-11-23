@@ -3,11 +3,12 @@ import { getDb, schema } from "@/db";
 import { getCurrentUser } from "@/lib/auth";
 import { readUpload } from "@/lib/storage";
 
-/** CV download for logged-in admins only. Applicants' files are never publicly reachable. */
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+/** CV view or download for logged-in admins only. Applicants' files are never publicly reachable. */
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await getCurrentUser())) return new Response("Not found", { status: 404 });
   const { id } = await params;
   if (!/^\d{1,9}$/.test(id)) return new Response("Not found", { status: 404 });
+  const inline = new URL(request.url).searchParams.get("inline") === "1";
 
   const row = (
     await getDb()
@@ -22,8 +23,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   return new Response(new Uint8Array(file.bytes), {
     headers: {
       "Content-Type": file.type,
-      // Always a download, never rendered in the admin's browser session.
-      "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(row.cvName)}`,
+      // Download by default; "inline" opens the file in a browser tab (PDFs display directly).
+      "Content-Disposition": `${inline ? "inline" : "attachment"}; filename*=UTF-8''${encodeURIComponent(row.cvName)}`,
       "Cache-Control": "private, no-store",
       "X-Content-Type-Options": "nosniff",
     },

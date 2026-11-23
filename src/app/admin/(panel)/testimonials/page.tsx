@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { asc } from "drizzle-orm";
-import { Badge, Empty, PageTitle, Table } from "@/components/admin/ui";
+import { Badge, Empty, PageTitle, RowActions, Table } from "@/components/admin/ui";
 import { getDb, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
+import { deleteTestimonial } from "@/server/actions/content";
 
 export const metadata = { title: "Testimonials" };
 
@@ -23,7 +24,7 @@ export default async function TestimonialsPage() {
       {rows.length === 0 ? (
         <Empty>No testimonials yet.</Empty>
       ) : (
-        <Table head={["Quote", "Author", "Order", "Visibility"]}>
+        <Table head={["Quote", "Author", "Order", "Visibility", "Actions"]}>
           {rows.map((item) => (
             <tr key={item.id}>
               <td className="max-w-md">
@@ -38,6 +39,13 @@ export default async function TestimonialsPage() {
               <td>{item.sortOrder}</td>
               <td>
                 <Badge value={item.visible ? "visible" : "hidden"} />
+              </td>
+              <td>
+                <RowActions
+                  view={item.visible ? { href: "/life", newTab: true } : undefined}
+                  edit={`/admin/testimonials/${item.id}`}
+                  onDelete={deleteTestimonial.bind(null, item.id)}
+                />
               </td>
             </tr>
           ))}

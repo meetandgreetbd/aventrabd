@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Download, Eye, Pencil } from "lucide-react";
+import { ConfirmButton } from "./ConfirmButton";
 
 const control =
   "mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-brand-bright focus:ring-2 focus:ring-brand-light";
@@ -278,4 +280,46 @@ export function parseId(value: string): number | null {
   if (value === "new") return null;
   if (!/^\d{1,9}$/.test(value)) notFound();
   return Number(value);
+}
+
+/** Icon buttons at the end of a table row: view (eye), edit (pencil) and delete (bin, with a confirm step). */
+export function RowActions({
+  view,
+  edit,
+  download,
+  onDelete,
+}: {
+  view?: { href: string; label?: string; newTab?: boolean };
+  edit?: string;
+  download?: { href: string; label?: string };
+  onDelete?: () => Promise<void>;
+}) {
+  const link =
+    "flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 text-slate-600 transition hover:border-brand hover:bg-brand-pale hover:text-brand";
+  return (
+    <div className="flex items-center gap-1.5">
+      {view && (
+        <Link
+          href={view.href}
+          target={view.newTab ? "_blank" : undefined}
+          aria-label={view.label ?? "View"}
+          title={view.label ?? "View"}
+          className={link}
+        >
+          <Eye className="h-4 w-4" />
+        </Link>
+      )}
+      {edit && (
+        <Link href={edit} aria-label="Edit" title="Edit" className={link}>
+          <Pencil className="h-4 w-4" />
+        </Link>
+      )}
+      {download && (
+        <a href={download.href} aria-label={download.label ?? "Download"} title={download.label ?? "Download"} className={link}>
+          <Download className="h-4 w-4" />
+        </a>
+      )}
+      {onDelete && <ConfirmButton action={onDelete} iconOnly />}
+    </div>
+  );
 }

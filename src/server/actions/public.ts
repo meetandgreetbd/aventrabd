@@ -11,14 +11,18 @@ import { firstError, str, type FormState } from "../form";
 
 const TRY_LATER = "Something went wrong on our side. Please try again in a moment.";
 
-async function notify(subject: string, text: string, replyTo: string) {
+async function notify(kind: "contact" | "application", subject: string, text: string, replyTo: string) {
   const apiKey = process.env.RESEND_API_KEY;
-  const { notifyEmail } = await getSettings();
-  if (!apiKey || !notifyEmail) return;
+  const settings = await getSettings();
+  const to = (kind === "contact" ? settings.contactNotifyEmail : settings.applicationNotifyEmail)
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (!apiKey || to.length === 0) return;
   try {
     const { error } = await new Resend(apiKey).emails.send({
       from: process.env.CONTACT_FROM_EMAIL || "Aventra Website <onboarding@resend.dev>",
-      to: notifyEmail,
+      to,
       subject,
       text,
       replyTo,
@@ -56,6 +60,7 @@ export async function sendMessage(_prev: FormState, data: FormData): Promise<For
     return { error: TRY_LATER };
   }
   await notify(
+    "contact",
     `New website message from ${parsed.data.name}`,
     `Name: ${parsed.data.name}\nEmail: ${parsed.data.email}\n\n${parsed.data.message}`,
     parsed.data.email,
@@ -116,6 +121,7 @@ export async function applyToJob(
     return { error: TRY_LATER };
   }
   await notify(
+    "application",
     `New application: ${job.title}`,
     `${parsed.data.name} (${parsed.data.email}, ${parsed.data.phone}) applied for ${job.title}.\nOpen the admin panel to view the CV.`,
     parsed.data.email,

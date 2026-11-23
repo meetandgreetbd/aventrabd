@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { asc } from "drizzle-orm";
-import { Badge, Empty, PageTitle, Table } from "@/components/admin/ui";
+import { Badge, Empty, PageTitle, RowActions, Table } from "@/components/admin/ui";
 import { getDb, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
+import { deleteMember } from "@/server/actions/content";
 
 export const metadata = { title: "Members" };
 
@@ -23,7 +24,7 @@ export default async function MembersPage() {
       {rows.length === 0 ? (
         <Empty>No members yet. The Leadership page hides the team section until you add someone.</Empty>
       ) : (
-        <Table head={["Name", "Title", "Group", "Order", "Visibility"]}>
+        <Table head={["Name", "Title", "Group", "Order", "Visibility", "Actions"]}>
           {rows.map((member) => (
             <tr key={member.id}>
               <td>
@@ -36,6 +37,13 @@ export default async function MembersPage() {
               <td>{member.sortOrder}</td>
               <td>
                 <Badge value={member.visible ? "visible" : "hidden"} />
+              </td>
+              <td>
+                <RowActions
+                  view={member.visible ? { href: "/leadership#leaders", newTab: true } : undefined}
+                  edit={`/admin/members/${member.id}`}
+                  onDelete={deleteMember.bind(null, member.id)}
+                />
               </td>
             </tr>
           ))}

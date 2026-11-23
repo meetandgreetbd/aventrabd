@@ -328,7 +328,12 @@ export const settingsDefaults = {
   facebook: "",
   youtube: "",
   x: "",
-  notifyEmail: "",
+  // Who is emailed about new contact messages / new job applications (comma-separated; empty = off).
+  contactNotifyEmail: "",
+  applicationNotifyEmail: "",
+  // Google Tag Manager container (GTM-XXXXXXX) and Google Analytics 4 measurement ID (G-XXXXXXXXXX).
+  gtmId: "",
+  gaId: "",
   shareImage: "",
   siteNoindex: false,
 };

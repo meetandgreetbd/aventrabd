@@ -42,20 +42,41 @@ async function main() {
     console.log("Seeded testimonial.");
   }
 
-  if (await isEmpty(schema.jobs)) {
-    await db.insert(schema.jobs).values({
-      title: "Sample Position (edit or delete me)",
-      slug: "sample-position",
-      department: "Operations",
+  // Two demo job posts (status: open, so they show on the site). Added once, matched by slug;
+  // edit or delete them in the admin under Job posts.
+  const demoJobs = [
+    {
+      title: "HR & Admin Executive (Demo)",
+      slug: "hr-admin-executive-demo",
+      department: "Human Resources",
       location: "Dhaka, Bangladesh",
-      type: "full-time",
-      summary: "An example job post showing how positions appear on the Careers page.",
+      type: "full-time" as const,
+      summary: "Demo post: support recruitment, onboarding and day-to-day office administration.",
       description:
-        "This is a sample job post.\n\nEdit it in the admin panel under Job posts, or delete it and create your own.",
-      requirements: "First requirement\nSecond requirement\nThird requirement",
-      status: "draft",
-    });
-    console.log("Seeded one sample job post (status: draft, so it is not public).");
+        "This is a demo job post to show how positions look on the website.\n\nThe HR & Admin Executive supports the people team with recruitment, onboarding and employee records, and keeps the office running smoothly.\n\nYou will work closely with managers across the group and be a first point of contact for colleagues.",
+      requirements:
+        "Bachelor's degree in a relevant field\n1-3 years of experience in HR or administration\nGood written and spoken communication in Bangla and English\nComfortable with MS Office or Google Workspace\nOrganised, discreet and good with people",
+      status: "open" as const,
+    },
+    {
+      title: "Business Development Officer (Demo)",
+      slug: "business-development-officer-demo",
+      department: "Business Development",
+      location: "Dhaka, Bangladesh",
+      type: "full-time" as const,
+      summary: "Demo post: find new opportunities and build lasting client relationships.",
+      description:
+        "This is a demo job post to show how positions look on the website.\n\nThe Business Development Officer identifies new opportunities, prepares proposals and builds relationships with clients and partners.\n\nYou will work with teams across the group to turn opportunities into long-term business.",
+      requirements:
+        "Bachelor's degree in business or a related field\n2+ years of experience in sales or business development\nStrong communication and presentation skills\nAble to plan your own work and meet targets\nWilling to travel for client meetings",
+      status: "open" as const,
+    },
+  ];
+  const existingSlugs = new Set((await db.select({ slug: schema.jobs.slug }).from(schema.jobs)).map((row) => row.slug));
+  for (const job of demoJobs) {
+    if (existingSlugs.has(job.slug)) continue;
+    await db.insert(schema.jobs).values(job);
+    console.log(`Seeded demo job: ${job.title}`);
   }
 
   const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();

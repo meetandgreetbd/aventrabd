@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
-import { Badge, Empty, PageTitle, Table } from "@/components/admin/ui";
+import { Badge, Empty, PageTitle, RowActions, Table } from "@/components/admin/ui";
 import { getDb, schema } from "@/db";
 import { requireUser } from "@/lib/auth";
+import { deleteApplication } from "@/server/actions/jobs";
 import { formatDateTime } from "@/lib/format";
 
 export const metadata = { title: "Applications" };
@@ -47,7 +48,7 @@ export default async function ApplicationsPage({
       {rows.length === 0 ? (
         <Empty>No applications yet.</Empty>
       ) : (
-        <Table head={["Applicant", "Job", "Status", "Received"]}>
+        <Table head={["Applicant", "Job", "Status", "Received", "Actions"]}>
           {rows.map((row) => (
             <tr key={row.id}>
               <td>
@@ -64,6 +65,13 @@ export default async function ApplicationsPage({
                 <Badge value={row.status} />
               </td>
               <td>{formatDateTime(row.createdAt)}</td>
+              <td>
+                <RowActions
+                  view={{ href: `/admin/files/${row.id}?inline=1`, label: "View CV", newTab: true }}
+                  download={{ href: `/admin/files/${row.id}`, label: "Download CV" }}
+                  onDelete={deleteApplication.bind(null, row.id)}
+                />
+              </td>
             </tr>
           ))}
         </Table>

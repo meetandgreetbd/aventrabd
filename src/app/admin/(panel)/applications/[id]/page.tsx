@@ -51,12 +51,22 @@ export default async function ApplicationPage({ params }: { params: Promise<{ id
             <div>
               <dt className="text-slate-500">CV</dt>
               <dd>
-                <a
-                  href={`/admin/files/${application.id}`}
-                  className="font-semibold text-brand hover:underline"
-                >
-                  Download {application.cvName}
-                </a>
+                <div className="flex flex-wrap items-center gap-3">
+                  <a
+                    href={`/admin/files/${application.id}?inline=1`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-brand hover:underline"
+                  >
+                    View CV
+                  </a>
+                  <a
+                    href={`/admin/files/${application.id}`}
+                    className="font-semibold text-brand hover:underline"
+                  >
+                    Download {application.cvName}
+                  </a>
+                </div>
               </dd>
             </div>
             <div>

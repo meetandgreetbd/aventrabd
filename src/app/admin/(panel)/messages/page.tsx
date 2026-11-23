@@ -1,4 +1,5 @@
 import { desc } from "drizzle-orm";
+import { Mail, MailOpen } from "lucide-react";
 import { ConfirmButton } from "@/components/admin/ConfirmButton";
 import { Badge, Empty, PageTitle } from "@/components/admin/ui";
 import { getDb, schema } from "@/db";
@@ -46,12 +47,14 @@ export default async function MessagesPage() {
                 <form action={setMessageRead.bind(null, message.id, !message.isRead)}>
                   <button
                     type="submit"
-                    className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    aria-label={message.isRead ? "Mark as unread" : "Mark as read"}
+                    title={message.isRead ? "Mark as unread" : "Mark as read"}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-300 text-slate-600 transition hover:border-brand hover:bg-brand-pale hover:text-brand"
                   >
-                    {message.isRead ? "Mark as unread" : "Mark as read"}
+                    {message.isRead ? <Mail className="h-4 w-4" /> : <MailOpen className="h-4 w-4" />}
                   </button>
                 </form>
-                <ConfirmButton action={deleteMessage.bind(null, message.id)} />
+                <ConfirmButton action={deleteMessage.bind(null, message.id)} iconOnly />
               </div>
             </li>
           ))}

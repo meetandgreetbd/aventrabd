@@ -187,6 +187,21 @@ const optionalUrl = z.union([
   z.url({ protocol: /^https?$/, error: "Social links must start with http:// or https://" }),
 ]);
 
+/** One or more email addresses separated by commas; empty turns that notification off. */
+const emailList = (what: string) =>
+  z
+    .string()
+    .max(300)
+    .refine(
+      (value) =>
+        value
+          .split(",")
+          .map((part) => part.trim())
+          .filter(Boolean)
+          .every((part) => z.email().safeParse(part).success),
+      `Enter valid email addresses for ${what}, separated by commas.`,
+    );
+
 const settingsSchema = z.object({
   siteName: z.string().min(1, "Enter the site name.").max(80),
   tagline: z.string().max(160),
@@ -197,14 +212,20 @@ const settingsSchema = z.object({
   facebook: optionalUrl,
   youtube: optionalUrl,
   x: optionalUrl,
-  notifyEmail: z.union([z.literal(""), z.email("Enter a valid notification email address.")]),
+  contactNotifyEmail: emailList("contact messages"),
+  applicationNotifyEmail: emailList("job applications"),
+  // Strict formats: these IDs are written into a script tag on every public page.
+  gtmId: z.union([z.literal(""), z.string().regex(/^GTM-[A-Z0-9]{4,12}$/, "The Tag Manager ID looks like GTM-XXXXXXX.")]),
+  gaId: z.union([z.literal(""), z.string().regex(/^G-[A-Z0-9]{4,14}$/, "The Analytics measurement ID looks like G-XXXXXXXXXX.")]),
 });
 
 export async function saveSettings(_prev: FormState, data: FormData): Promise<FormState> {
   await requireAdmin();
   const fields = Object.keys(settingsSchema.shape) as (keyof typeof settingsSchema.shape)[];
   const parsed = settingsSchema.safeParse(
-    Object.fromEntries(fields.map((field) => [field, str(data, field)])),
+    Object.fromEntries(
+      fields.map((field) => [field, field === "gtmId" || field === "gaId" ? str(data, field).toUpperCase() : str(data, field)]),
+    ),
   );
   if (!parsed.success) return { error: firstError(parsed.error) };
 
