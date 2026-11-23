@@ -39,7 +39,7 @@ export default async function ApplicationPage({ params }: { params: Promise<{ id
             <div>
               <dt className="text-slate-500">Email</dt>
               <dd>
-                <a href={`mailto:${application.email}`} className="font-semibold text-violet-700 hover:underline">
+                <a href={`mailto:${application.email}`} className="font-semibold text-brand hover:underline">
                   {application.email}
                 </a>
               </dd>
@@ -53,7 +53,7 @@ export default async function ApplicationPage({ params }: { params: Promise<{ id
               <dd>
                 <a
                   href={`/admin/files/${application.id}`}
-                  className="font-semibold text-violet-700 hover:underline"
+                  className="font-semibold text-brand hover:underline"
                 >
                   Download {application.cvName}
                 </a>
@@ -92,7 +92,7 @@ export default async function ApplicationPage({ params }: { params: Promise<{ id
             </label>
             <button
               type="submit"
-              className="rounded-lg bg-violet-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-violet-800"
+              className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-deep"
             >
               Save status
             </button>

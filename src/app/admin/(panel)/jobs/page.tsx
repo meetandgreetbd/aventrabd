@@ -37,7 +37,7 @@ export default async function JobsPage() {
           {rows.map((job) => (
             <tr key={job.id}>
               <td>
-                <Link href={`/admin/jobs/${job.id}`} className="font-semibold text-violet-700 hover:underline">
+                <Link href={`/admin/jobs/${job.id}`} className="font-semibold text-brand hover:underline">
                   {job.title}
                 </Link>
               </td>
@@ -47,7 +47,7 @@ export default async function JobsPage() {
               </td>
               <td>{job.deadline ? formatDate(job.deadline) : "—"}</td>
               <td>
-                <Link href={`/admin/applications?job=${job.id}`} className="text-violet-700 hover:underline">
+                <Link href={`/admin/applications?job=${job.id}`} className="text-brand hover:underline">
                   {job.applications}
                 </Link>
               </td>

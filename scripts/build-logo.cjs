@@ -1,6 +1,7 @@
 /**
- * Builds the Aventra logo as clean vector files, traced from the supplied
- * artwork (brand-source/aventra-logo.jpg). Vectors stay sharp at every size
+ * Builds the Aventra logo as clean vector files. The shapes are traced from the
+ * supplied artwork (brand-source/aventra-logo.jpg); the colours are the site's
+ * violet ramp, so the logo matches the buttons, icons and illustrations. Vectors stay sharp at every size
  * and weigh about 2 KB each.
  *
  *   node scripts/build-logo.cjs
@@ -20,27 +21,27 @@ const MARK_BOX = { x: 56, y: 76, width: 776, height: 644 };
 
 const gradients = `
   <linearGradient id="a-left" gradientUnits="userSpaceOnUse" x1="470" y1="90" x2="140" y2="700">
-    <stop offset="0" stop-color="#7340c4"/>
-    <stop offset="0.22" stop-color="#a45be6"/>
-    <stop offset="0.55" stop-color="#d85cf0"/>
-    <stop offset="1" stop-color="#9a35f5"/>
+    <stop offset="0" stop-color="#4f1fe0"/>
+    <stop offset="0.22" stop-color="#7c5cf5"/>
+    <stop offset="0.55" stop-color="#b7a6ff"/>
+    <stop offset="1" stop-color="#7c5cf5"/>
   </linearGradient>
   <linearGradient id="a-right" gradientUnits="userSpaceOnUse" x1="500" y1="100" x2="650" y2="465">
-    <stop offset="0" stop-color="#dcaaf9"/>
-    <stop offset="0.45" stop-color="#cf63f7"/>
-    <stop offset="1" stop-color="#bd1df9"/>
+    <stop offset="0" stop-color="#efeaff"/>
+    <stop offset="0.45" stop-color="#b7a6ff"/>
+    <stop offset="1" stop-color="#7c5cf5"/>
   </linearGradient>
   <linearGradient id="a-foot" gradientUnits="userSpaceOnUse" x1="620" y1="460" x2="770" y2="675">
-    <stop offset="0" stop-color="#8a1fe8"/>
-    <stop offset="1" stop-color="#3f00ad"/>
+    <stop offset="0" stop-color="#4f1fe0"/>
+    <stop offset="1" stop-color="#2a0fa8"/>
   </linearGradient>
   <linearGradient id="a-wing-left" gradientUnits="userSpaceOnUse" x1="300" y1="545" x2="482" y2="506">
-    <stop offset="0" stop-color="#e03cec"/>
-    <stop offset="1" stop-color="#5a0aa8"/>
+    <stop offset="0" stop-color="#b7a6ff"/>
+    <stop offset="1" stop-color="#2a0fa8"/>
   </linearGradient>
   <linearGradient id="a-wing-right" gradientUnits="userSpaceOnUse" x1="482" y1="506" x2="620" y2="520">
-    <stop offset="0" stop-color="#3a0585"/>
-    <stop offset="1" stop-color="#5c0cc4"/>
+    <stop offset="0" stop-color="#14064f"/>
+    <stop offset="1" stop-color="#2a0fa8"/>
   </linearGradient>
   <linearGradient id="a-edge" gradientUnits="userSpaceOnUse" x1="420" y1="97" x2="68" y2="712">
     <stop offset="0" stop-color="#ffffff" stop-opacity="0.15"/>
@@ -54,7 +55,7 @@ const shapes = `
   <polygon points="583,470 708,455 820,670 690,675" fill="url(#a-foot)"/>
   <polygon points="515,85 708,455 583,470 468,252" fill="url(#a-right)"/>
   <polygon points="420,97 515,85 468,252 222,685 68,712" fill="url(#a-left)"/>
-  <polygon points="420,97 515,85 468,252" fill="#4a1fa8" opacity="0.35"/>
+  <polygon points="420,97 515,85 468,252" fill="#2a0fa8" opacity="0.35"/>
   <path d="M420 97 L68 712 L222 685" fill="none" stroke="url(#a-edge)" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
   <path d="M420 97 L515 85" fill="none" stroke="#ffffff" stroke-opacity="0.75" stroke-width="5" stroke-linecap="round"/>`;
 
@@ -113,8 +114,8 @@ function lockup(ink) {
     <g fill="none" stroke="${ink}" stroke-width="3.7" stroke-linecap="square" stroke-linejoin="miter">
       ${paths}
     </g>
-    <polygon points="7.3,16.4 10,11.2 12.7,16.4" fill="#a855f7"/>
-    <polygon points="${(6 * LETTER_ADVANCE + 7.3).toFixed(1)},16.4 ${(6 * LETTER_ADVANCE + 10).toFixed(1)},11.2 ${(6 * LETTER_ADVANCE + 12.7).toFixed(1)},16.4" fill="#a855f7"/>
+    <polygon points="7.3,16.4 10,11.2 12.7,16.4" fill="#7c5cf5"/>
+    <polygon points="${(6 * LETTER_ADVANCE + 7.3).toFixed(1)},16.4 ${(6 * LETTER_ADVANCE + 10).toFixed(1)},11.2 ${(6 * LETTER_ADVANCE + 12.7).toFixed(1)},16.4" fill="#7c5cf5"/>
   </g>
   <text x="${(wordX + 2).toFixed(1)}" y="${taglineY.toFixed(1)}" textLength="${(wordWidth - 4).toFixed(1)}" lengthAdjust="spacing" font-family="Arial, Helvetica, sans-serif" font-size="10.5" font-weight="400" fill="${ink}" fill-opacity="0.9">${TAGLINE}</text>
 </svg>

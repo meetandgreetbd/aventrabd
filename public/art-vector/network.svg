@@ -2,10 +2,10 @@
 <defs>
 <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
 <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="30"/></filter>
-<radialGradient id="purple" cx="0.34" cy="0.28" r="0.8"><stop offset="0" stop-color="#f3efff" stop-opacity="1"/><stop offset="0.18" stop-color="#b7a6ff" stop-opacity="1"/><stop offset="0.5" stop-color="#5a35e8" stop-opacity="1"/><stop offset="0.8" stop-color="#2a0fa8" stop-opacity="1"/><stop offset="1" stop-color="#12054d" stop-opacity="1"/></radialGradient>
+<radialGradient id="purple" cx="0.34" cy="0.28" r="0.8"><stop offset="0" stop-color="#efeaff" stop-opacity="1"/><stop offset="0.18" stop-color="#b7a6ff" stop-opacity="1"/><stop offset="0.5" stop-color="#4f1fe0" stop-opacity="1"/><stop offset="0.8" stop-color="#2a0fa8" stop-opacity="1"/><stop offset="1" stop-color="#14064f" stop-opacity="1"/></radialGradient>
 <radialGradient id="chrome" cx="0.34" cy="0.28" r="0.8"><stop offset="0" stop-color="#ffffff" stop-opacity="1"/><stop offset="0.2" stop-color="#cfcbe8" stop-opacity="1"/><stop offset="0.55" stop-color="#6f6a9c" stop-opacity="1"/><stop offset="0.85" stop-color="#2d2952" stop-opacity="1"/><stop offset="1" stop-color="#17142f" stop-opacity="1"/></radialGradient>
 </defs>
-<ellipse cx="330" cy="330" rx="210" ry="250" fill="#8f7cf0" opacity="0.14" filter="url(#glow)"/>
+<ellipse cx="330" cy="330" rx="210" ry="250" fill="#7c5cf5" opacity="0.14" filter="url(#glow)"/>
 <line x1="330" y1="78" x2="468" y2="96" stroke="#5f5a8c" stroke-width="2.2" opacity="0.62"/>
 <line x1="330" y1="78" x2="246" y2="148" stroke="#5f5a8c" stroke-width="2.2" opacity="0.62"/>
 <line x1="330" y1="78" x2="414" y2="288" stroke="#5f5a8c" stroke-width="2.2" opacity="0.62"/>

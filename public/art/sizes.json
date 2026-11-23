@@ -1,0 +1,57 @@
+{
+  "rings": {
+    "width": 1207,
+    "height": 1387,
+    "v": "mwt34ukn"
+  },
+  "network": {
+    "width": 1100,
+    "height": 998,
+    "v": "mwt34ukn"
+  },
+  "bars": {
+    "width": 720,
+    "height": 926,
+    "v": "mwt34ukn"
+  },
+  "loops": {
+    "width": 1100,
+    "height": 1054,
+    "v": "mwt34ukn"
+  },
+  "cubes": {
+    "width": 980,
+    "height": 1143,
+    "v": "mwt34ukn"
+  },
+  "compass": {
+    "width": 720,
+    "height": 720,
+    "v": "mwt34ukn"
+  },
+  "bubble": {
+    "width": 891,
+    "height": 621,
+    "v": "mwt34ukn"
+  },
+  "globe": {
+    "width": 720,
+    "height": 473,
+    "v": "mwt34ukn"
+  },
+  "swirl": {
+    "width": 720,
+    "height": 315,
+    "v": "mwt34ukn"
+  },
+  "arcs": {
+    "width": 720,
+    "height": 619,
+    "v": "mwt34ukn"
+  },
+  "a": {
+    "width": 1400,
+    "height": 1045,
+    "v": "mwt34ukn"
+  }
+}

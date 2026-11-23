@@ -1,332 +1,420 @@
 /**
- * Draws the hero illustration for each page as vector artwork (SVG), following
- * the compositions in the design mockup: glass rings and sphere, connected
- * spheres, growth bars, glass loops, stacked cubes, compass, chat bubble, globe.
+ * Cuts the real artwork for each page out of the original design
+ * (brand-source/design-mockup.png, 1536 x 1024) and prepares it for the site.
  *
- *   node scripts/build-art.cjs            -> public/art/*.svg
+ *   node scripts/build-art.cjs            -> public/art/*.webp
  *
- * Everything is described in code below, so colours and shapes can be tuned
- * and regenerated. The files have transparent backgrounds and stay sharp at any size.
+ * For each piece the design's own backdrop colour is made transparent, so only the
+ * artwork itself (light glass and highlights as well as dark and violet parts) shows
+ * on the page. Edges are feathered, and any bit of headline that overlaps the
+ * artwork is masked out.
+ *
+ * The source is small (each piece is roughly 150-200 px wide), so the results are
+ * soft. If a larger render ever becomes available, replace the PNG, scale the boxes
+ * below with BASE_WIDTH, and re-run.
  */
 const fs = require("node:fs");
+const sharp = require("sharp");
 
+const SOURCE = ["brand-source/design-mockup.png", "brand-source/design-mockup.jpg"].find((file) =>
+  fs.existsSync(file),
+);
 const OUT = "public/art";
-const n = (value) => Number(value.toFixed(1));
+const BASE_WIDTH = 1536; // the boxes below are measured on a 1536px-wide sheet
+const TARGET_WIDTH = 720;
+// Colour distance (0-255) from the backdrop at which a pixel starts / finishes becoming visible.
+const KEY_FROM = 7;
+const KEY_TO = 30;
 
-const svg = (width, height, defs, body) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}">\n<defs>${defs}\n</defs>${body}\n</svg>\n`;
+/**
+ * box:   [left, top, width, height] on the sheet
+ * dark:  artwork sits on the dark home page (screen blend) instead of a light one
+ * solid: edges that are NOT feathered because they sit against the page edge.
+ *        The hero pieces are cut by the panel edge in the design itself; on the site they end
+ *        inside the page, so that cut edge fades out instead of ending in a line.
+ * erase: [left, top, width, height] areas (sheet coordinates) to mask out, e.g. overlapping text
+ * ball:  [x, y, radius] (sheet px inside the crop) of a sphere on the mirror axis whose real pixels are kept
+ * roundRight: trim the cut right side along a curve instead of a straight edge
+ * reflectRight: continue the artwork past its cut right edge by reflecting this fraction of its width
+ * circleRight: [cx, cy, rx, ry] ellipse the right side is trimmed to
+ * mirrorAxis: x (sheet px inside the crop) of a vertical axis; the right side becomes an exact mirror of the left
+ * mirrorRight: repeat the left-hand fraction of the artwork (its pale glass shapes), mirrored, on the right
+ * completeAround: [x, y, sphereRadius] inside the crop (sheet px): the centre of concentric rings. The part the
+ *        design cut off on the right is drawn by sweeping the rings round that centre.
+ * key:   [from, to] colour distance for the cut-out, where the default leaves backdrop residue
+ * keepBackdrop: do not cut the backdrop out by colour (for soft smoke, where that leaves jagged edges)
+ * wideFade: fade out over a long distance instead of a thin edge
+ * softLeft: wide fade on the left as well (for artwork with no clear outline on that side)
+ */
+const pieces = {
+  rings: { box: [628, 62, 136, 262], completeAround: [114, 133.5, 31] },
+  network: { box: [970, 58, 176, 244], key: [8, 30], erase: [[958, 150, 40, 118]], mirrorAxis: 134.5 },
+  bars: { box: [1320, 66, 210, 270], erase: [[1310, 138, 96, 58]], softLeft: true },
+  loops: { box: [232, 610, 166, 190], key: [16, 50], reflectRight: 0.1, circleRight: [[90, 95, 86, 84, 0.06], [104, 68, 61.5, 55, 0.035]] },
+  cubes: { box: [636, 616, 126, 200], key: [12, 40], mirrorRight: 0.516 },
+  compass: { box: [962, 616, 184, 184] },
+  bubble: { box: [1366, 604, 146, 126], key: [12, 40], softLeft: true, mirrorRight: 0.34 },
+  globe: { box: [205, 420, 195, 128], dark: true, solid: ["bottom"], wideFade: true },
+  swirl: { box: [935, 418, 215, 94], solid: ["bottom"], keepBackdrop: true, wideFade: true },
+  // bottom-right corner of the About panel: large violet arcs
+  arcs: { box: [668, 426, 100, 86], solid: ["bottom"], keepBackdrop: true, wideFade: true },
+};
 
-const blur = (id, amount) =>
-  `\n<filter id="${id}" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${amount}"/></filter>`;
+const smooth = (t) => {
+  const c = Math.min(1, Math.max(0, t));
+  return c * c * (3 - 2 * c);
+};
 
-const radial = (id, stops, cx = 0.34, cy = 0.28, r = 0.8) =>
-  `\n<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="${r}">${stops
-    .map(([offset, color, opacity = 1]) => `<stop offset="${offset}" stop-color="${color}" stop-opacity="${opacity}"/>`)
-    .join("")}</radialGradient>`;
+(async () => {
+  if (!SOURCE) throw new Error("Put the design at brand-source/design-mockup.png");
+  const meta = await sharp(SOURCE).metadata();
+  const k = meta.width / BASE_WIDTH;
+  console.log(`source ${SOURCE} ${meta.width}x${meta.height}`);
+  fs.mkdirSync(OUT, { recursive: true });
+  const sizes = {};
+  const stamp = Date.now().toString(36); // changes on every build; used to defeat browser caching
 
-const linear = (id, stops, x1 = 0, y1 = 0, x2 = 1, y2 = 1) =>
-  `\n<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">${stops
-    .map(([offset, color, opacity = 1]) => `<stop offset="${offset}" stop-color="${color}" stop-opacity="${opacity}"/>`)
-    .join("")}</linearGradient>`;
+  for (const [name, piece] of Object.entries(pieces)) {
+    const [left, top, width, height] = piece.box.map((value) => Math.round(value * k));
+    const scale = TARGET_WIDTH / width;
+    let { data, info } = await sharp(SOURCE)
+      .extract({ left, top, width, height })
+      .resize({ width: TARGET_WIDTH, kernel: "lanczos3" })
+      .blur(piece.keepBackdrop ? 1.6 : 0.5)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
 
-const PURPLE_BALL = [[0, "#f3efff"], [0.18, "#b7a6ff"], [0.5, "#5a35e8"], [0.8, "#2a0fa8"], [1, "#12054d"]];
-const CHROME_BALL = [[0, "#ffffff"], [0.2, "#cfcbe8"], [0.55, "#6f6a9c"], [0.85, "#2d2952"], [1, "#17142f"]];
+    if (piece.reflectRight) {
+      // Keep the whole design as it is and only continue it past its cut right edge: the last
+      // strip before the edge is reflected outwards, so curves that run into the edge (the ring's
+      // rim) turn back and close, in the artwork's own colours and texture.
+      const strip = Math.round(info.width * piece.reflectRight);
+      const fullWidth = info.width + strip;
+      const full = Buffer.alloc(fullWidth * info.height * 4);
+      for (let y = 0; y < info.height; y += 1) {
+        for (let x = 0; x < fullWidth; x += 1) {
+          const sourceX = x < info.width ? x : 2 * info.width - 1 - x;
+          data.copy(full, (y * fullWidth + x) * 4, (y * info.width + sourceX) * 4, (y * info.width + sourceX) * 4 + 4);
+        }
+      }
+      data = full;
+      info = { ...info, width: fullWidth };
+    }
 
-/** A glossy sphere with a soft highlight, a rim light and a contact shadow. */
-function sphere(x, y, r, fill, shadow = true) {
-  return `
-<g>${shadow ? `\n  <ellipse cx="${n(x + r * 0.15)}" cy="${n(y + r * 1.02)}" rx="${n(r * 0.9)}" ry="${n(r * 0.22)}" fill="#1b1250" opacity="0.22" filter="url(#soft)"/>` : ""}
-  <circle cx="${x}" cy="${y}" r="${r}" fill="url(#${fill})"/>
-  <ellipse cx="${n(x - r * 0.32)}" cy="${n(y - r * 0.42)}" rx="${n(r * 0.34)}" ry="${n(r * 0.2)}" fill="#ffffff" opacity="0.75" transform="rotate(-28 ${n(x - r * 0.32)} ${n(y - r * 0.42)})"/>
-  <path d="M ${n(x - r * 0.62)} ${n(y + r * 0.6)} A ${r} ${r} 0 0 0 ${n(x + r * 0.78)} ${n(y + r * 0.45)}" fill="none" stroke="#d9ccff" stroke-width="${n(Math.max(1.5, r * 0.07))}" stroke-linecap="round" opacity="0.55"/>
-</g>`;
-}
+    if (piece.mirrorAxis) {
+      // Exact left/right symmetry: everything right of a vertical axis (sheet px inside the crop)
+      // is replaced by a mirror image of what is left of it.
+      const axis = Math.round(piece.mirrorAxis * k * scale);
+      const fullWidth = axis * 2;
+      const full = Buffer.alloc(fullWidth * info.height * 4);
+      const ball = piece.ball
+        ? { x: piece.ball[0] * k * scale, y: piece.ball[1] * k * scale, r: piece.ball[2] * k * scale }
+        : null;
+      for (let y = 0; y < info.height; y += 1) {
+        for (let x = 0; x < fullWidth; x += 1) {
+          const sourceX = x < axis ? x : fullWidth - 1 - x;
+          const o = (y * fullWidth + x) * 4;
+          const mirrored = (y * info.width + sourceX) * 4;
+          // Inside the sphere, real pixels right of the axis are kept where the design has them,
+          // so the ball keeps its single highlight instead of getting a mirrored second one.
+          const inBall = ball && x >= axis && x < info.width && Math.hypot(x - ball.x, y - ball.y) < ball.r;
+          if (!inBall) {
+            data.copy(full, o, mirrored, mirrored + 4);
+            continue;
+          }
+          const real = (y * info.width + x) * 4;
+          const w = Math.min(1, (info.width - 1 - x) / 30);
+          for (let c = 0; c < 4; c += 1) full[o + c] = Math.round(data[real + c] * w + data[mirrored + c] * (1 - w));
+        }
+      }
+      piece.repeated = { strip: axis, start: axis };
+      data = full;
+      info = { ...info, width: fullWidth };
+    }
 
-/* ---------- About: glass rings around a purple sphere ---------- */
-function rings() {
-  const cx = 420;
-  const cy = 330;
-  const defs =
-    blur("soft", 10) +
-    blur("glow", 26) +
-    radial("ball", PURPLE_BALL) +
-    linear("band", [[0, "#ffffff", 1], [0.5, "#e6e3f5", 0.9], [1, "#a39cd0", 0.75]]) +
-    linear("edge", [[0, "#ffffff", 1], [1, "#ffffff", 0.2]]);
-  let body = `\n<circle cx="${cx}" cy="${cy}" r="150" fill="#7c5cf5" opacity="0.28" filter="url(#glow)"/>`;
-  [306, 262, 220, 180, 142, 106].forEach((radius, index) => {
-    const width = 28 - index * 2;
-    const opacity = 0.6 + index * 0.08;
-    body += `
-<circle cx="${cx + 6}" cy="${cy + 10}" r="${radius}" fill="none" stroke="#3a356e" stroke-width="${width}" opacity="0.3" filter="url(#soft)"/>
-<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="url(#band)" stroke-width="${width}" opacity="${n(opacity)}"/>
-<circle cx="${cx}" cy="${cy}" r="${n(radius + width / 2 - 1)}" fill="none" stroke="url(#edge)" stroke-width="1.6" opacity="0.9"/>
-<circle cx="${cx}" cy="${cy}" r="${n(radius - width / 2 + 1)}" fill="none" stroke="#7a74ad" stroke-width="1.4" opacity="0.6"/>`;
-  });
-  body += sphere(cx, cy, 66, "ball");
-  return svg(760, 660, defs, body);
-}
+    if (piece.mirrorRight) {
+      // The design cuts this artwork off on the right. Only the pale glass shapes from its LEFT
+      // side (the first `mirrorRight` fraction of the width) are repeated there, mirrored, so the
+      // right side ends in the same soft glass shapes instead of a hard cut or a second stack.
+      const strip = Math.round(info.width * piece.mirrorRight);
+      const blend = Math.round(strip * 0.3); // overlap in which the real edge hands over to the glass
+      const fullWidth = info.width + strip - blend;
+      const full = Buffer.alloc(fullWidth * info.height * 4);
+      for (let y = 0; y < info.height; y += 1) {
+        for (let x = 0; x < fullWidth; x += 1) {
+          const o = (y * fullWidth + x) * 4;
+          const t = x - (info.width - blend); // position inside the added strip
+          const real = x < info.width ? (y * info.width + x) * 4 : -1;
+          const glass = t >= 0 ? (y * info.width + Math.max(0, strip - 1 - t)) * 4 : -1;
+          const w = glass < 0 ? 1 : real < 0 ? 0 : 1 - t / blend; // weight of the real pixel
+          for (let c = 0; c < 4; c += 1) {
+            full[o + c] = Math.round((real >= 0 ? data[real + c] : 0) * w + (glass >= 0 ? data[glass + c] : 0) * (1 - w));
+          }
+        }
+      }
+      piece.repeated = { strip, start: info.width - blend };
+      data = full;
+      info = { ...info, width: fullWidth };
+    }
 
-/* ---------- Culture: connected spheres ---------- */
-function network() {
-  const nodes = [
-    [330, 78, 40, "chrome"],
-    [112, 190, 44, "chrome"],
-    [468, 96, 20, "purple"],
-    [246, 148, 15, "purple"],
-    [414, 288, 52, "purple"],
-    [270, 266, 18, "chrome"],
-    [156, 332, 22, "purple"],
-    [224, 452, 44, "chrome"],
-    [420, 552, 48, "purple"],
-    [300, 596, 16, "chrome"],
-    [530, 420, 14, "chrome"],
-  ];
-  const links = [[0, 2], [0, 3], [0, 4], [1, 3], [1, 5], [1, 6], [3, 5], [4, 5], [4, 7], [4, 8], [4, 10], [5, 6], [6, 7], [7, 8], [7, 9], [8, 9], [8, 10]];
-  const defs = blur("soft", 9) + blur("glow", 30) + radial("purple", PURPLE_BALL) + radial("chrome", CHROME_BALL);
-  let body = `\n<ellipse cx="330" cy="330" rx="210" ry="250" fill="#8f7cf0" opacity="0.14" filter="url(#glow)"/>`;
-  for (const [from, to] of links) {
-    body += `\n<line x1="${nodes[from][0]}" y1="${nodes[from][1]}" x2="${nodes[to][0]}" y2="${nodes[to][1]}" stroke="#5f5a8c" stroke-width="2.2" opacity="0.62"/>`;
+    if (piece.completeAround) {
+      // The design cuts the rings off on the right. The missing part is drawn by sweeping the
+      // rings round the sphere's centre: every missing point takes the colour found at the same
+      // distance from the centre straight above it and straight below it (both exist in the
+      // design), mixed according to its angle. That gives smooth arcs that join the real rings
+      // at the top and bottom without a seam. Real pixels are kept wherever they exist; inside
+      // the sphere the missing sliver is mirrored left-to-right so the ball stays round.
+      const cx = piece.completeAround[0] * k * scale;
+      const cy = piece.completeAround[1] * k * scale;
+      const sphereRadius = (piece.completeAround[2] ?? 0) * k * scale;
+      const fullWidth = Math.round(cx * 2);
+      const full = Buffer.alloc(fullWidth * info.height * 4);
+      const blend = 70; // px over which real pixels hand over to the swept ones
+      const at = (px, py) => {
+        const sx = Math.min(info.width - 1, Math.max(0, Math.round(px)));
+        const sy = Math.min(info.height - 1, Math.max(0, Math.round(py)));
+        return (sy * info.width + sx) * 4;
+      };
+      for (let y = 0; y < info.height; y += 1) {
+        for (let x = 0; x < fullWidth; x += 1) {
+          const o = (y * fullWidth + x) * 4;
+          const real = x < info.width ? (y * info.width + x) * 4 : -1;
+          const dx = x - cx;
+          const dy = y - cy;
+          const r = Math.hypot(dx, dy);
+          // How much of the real pixel to keep. Right of the centre it fades out towards the cut
+          // edge. Left of the centre it is kept fully, except in a wedge (within 40 degrees of
+          // straight up / straight down) where it eases into the swept arcs, so the real rings
+          // turn into the drawn ones gradually instead of meeting them at an angle.
+          let w = real < 0 ? 0 : x <= cx ? 1 : Math.min(1, (info.width - 1 - x) / blend);
+          if (real >= 0 && r >= sphereRadius) {
+            const fromVertical = (Math.atan2(Math.abs(dx), Math.abs(dy)) * 180) / Math.PI;
+            const ease = x <= cx ? smooth(fromVertical / 40) : 0;
+            w = x <= cx ? ease : Math.min(w, 0);
+          }
+          if (w >= 1) {
+            data.copy(full, o, real, real + 4);
+            continue;
+          }
+          let top;
+          let bottom;
+          let mix;
+          if (r < sphereRadius) {
+            top = bottom = at(2 * cx - 1 - x, y);
+            mix = 1;
+          } else {
+            top = at(cx - 2, cy - r);
+            bottom = at(cx - 2, cy + r);
+            const angle = Math.atan2(-dy, Math.abs(dx)); // +90 degrees = straight up, -90 = straight down
+            mix = smooth(angle / Math.PI + 0.5);
+          }
+          for (let c = 0; c < 4; c += 1) {
+            const swept = data[top + c] * mix + data[bottom + c] * (1 - mix);
+            full[o + c] = Math.round((real >= 0 ? data[real + c] : 0) * w + swept * (1 - w));
+          }
+        }
+      }
+      data = full;
+      info = { ...info, width: fullWidth };
+    }
+
+    // The design's backdrop colour, estimated from the outer ring of the crop (median per channel).
+    const ring = [[], [], []];
+    for (let y = 0; y < info.height; y += 3) {
+      for (let x = 0; x < info.width; x += 3) {
+        const nx = x / info.width;
+        const ny = y / info.height;
+        if (nx > 0.1 && nx < 0.9 && ny > 0.1 && ny < 0.9) continue;
+        const i = (y * info.width + x) * 4;
+        for (let c = 0; c < 3; c += 1) ring[c].push(data[i + c]);
+      }
+    }
+    const backdrop = ring.map((values) => values.sort((a, b) => a - b)[Math.floor(values.length / 2)]);
+
+    const solid = new Set(piece.solid ?? []);
+    const erase = (piece.erase ?? []).map(([ex, ey, ew, eh]) => ({
+      x0: (ex * k - left) * scale,
+      y0: (ey * k - top) * scale,
+      x1: (ex * k - left + ew * k) * scale,
+      y1: (ey * k - top + eh * k) * scale,
+    }));
+    if (piece.repeated) {
+      // the same areas, where they landed in the mirrored copy on the right
+      const { strip, start } = piece.repeated;
+      for (const area of [...erase]) {
+        erase.push({ x0: start + strip - 1 - area.x1, x1: start + strip - 1 - area.x0, y0: area.y0, y1: area.y1 });
+      }
+    }
+    const soft = 26; // px of soft edge around erased areas
+
+    for (let y = 0; y < info.height; y += 1) {
+      for (let x = 0; x < info.width; x += 1) {
+        const i = (y * info.width + x) * 4;
+        // How far this pixel is from the design's backdrop colour. Pixels close to the
+        // backdrop become transparent; both lighter parts (glass, highlights) and darker
+        // parts (shadows, violet) are kept in their original colours.
+        const distance = Math.max(
+          Math.abs(data[i] - backdrop[0]),
+          Math.abs(data[i + 1] - backdrop[1]),
+          Math.abs(data[i + 2] - backdrop[2]),
+        );
+        const [keyFrom, keyTo] = piece.key ?? [KEY_FROM, KEY_TO];
+        const key = piece.keepBackdrop ? 1 : smooth((distance - keyFrom) / (keyTo - keyFrom));
+
+        // Feather towards the edges (skipped on edges that meet the page edge).
+        let dx = (x / (info.width - 1)) * 2 - 1;
+        let dy = (y / (info.height - 1)) * 2 - 1;
+        if (solid.has("right")) dx = Math.min(dx, 0);
+        if (solid.has("left")) dx = Math.max(dx, 0);
+        if (solid.has("bottom")) dy = Math.min(dy, 0);
+        if (solid.has("top")) dy = Math.max(dy, 0);
+        // Thin fade on every side, so as much of the object as the design contains is shown.
+        // (The design cuts the artwork off on the right; only the last strip there fades out.)
+        const leftFrom = piece.softLeft ? 0.72 : 0.86; // softLeft: no clear outline on the left, so fade it widely
+        const fadeX = dx < 0 ? smooth((-dx - leftFrom) / (0.99 - leftFrom)) : smooth((dx - 0.84) / 0.15);
+        const fadeY = smooth((Math.abs(dy) - 0.86) / 0.13);
+        let alpha = (1 - fadeX) * (1 - fadeY);
+        // roundRight: the cut right side is trimmed along a curve that follows the ring, so the
+        // artwork ends in a rounded outline there instead of a straight line with square corners.
+        // circleRight [cx, cy, rx, ry] (sheet px inside the crop): right of cx the artwork is
+        // trimmed to this ellipse, which follows the rings' own outline, so the cut side ends
+        // as part of a circle instead of a straight edge.
+        if (piece.circleRight) {
+          // One or more ellipses; a pixel is kept if it is inside any of them. The first follows
+          // the overall outline, the second the front ring itself, so that ring keeps its whole rim.
+          let keep = 0;
+          for (const [cx0, cy0, rx0, ry0, soft0] of piece.circleRight) {
+            const [ex, ey, erx, ery] = [cx0, cy0, rx0, ry0].map((value) => value * k * scale);
+            // Left of cx only the height counts, so the trim is continuous across cx (no vertical line).
+            const e = Math.hypot(Math.max(0, x - ex) / erx, (y - ey) / ery);
+            keep = Math.max(keep, 1 - smooth((e - (1 - soft0)) / soft0));
+          }
+          alpha = (dx < 0 ? 1 - fadeX : 1) * (1 - fadeY) * keep;
+        }
+        if (piece.roundRight && dx > 0) alpha *= 1 - smooth((Math.hypot(dx, dy * 0.92) - 0.8) / 0.2);
+        if (piece.wideFade) {
+          // Smoke has no outline to preserve, so it melts into the page over a long distance.
+          const softX = dx < 0 ? smooth((-dx - 0.1) / 0.85) : smooth((dx - 0.62) / 0.36);
+          const softY = dy < 0 ? smooth((-dy - 0.05) / 0.9) : 0;
+          alpha = (1 - softX) * (1 - softY);
+        }
+
+        for (const area of erase) {
+          const outside = Math.max(area.x0 - x, x - area.x1, area.y0 - y, y - area.y1);
+          alpha *= smooth(outside / soft);
+        }
+        data[i + 3] = Math.round(alpha * key * 255);
+      }
+    }
+
+    await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } })
+      .webp({ quality: 90, alphaQuality: 95 })
+      .toFile(`${OUT}/${name}.webp`);
+    sizes[name] = { width: info.width, height: info.height, v: stamp };
+    console.log(`${name}.webp  ${info.width}x${info.height}`);
   }
-  for (const [x, y, r, tone] of nodes) body += sphere(x, y, r, tone, r > 30);
-  return svg(620, 660, defs, body);
-}
-
-/* ---------- Careers: rising bars and arrow ---------- */
-function bars() {
-  const base = 560;
-  const heights = [78, 128, 190, 262, 340, 430];
-  const defs =
-    blur("soft", 8) +
-    blur("glow", 28) +
-    linear("front", [[0, "#8f6dff"], [0.55, "#4a25d8"], [1, "#1f0a8a"]], 0, 0, 0, 1) +
-    linear("frontPale", [[0, "#c9c2ee"], [0.6, "#8b84c4"], [1, "#5f58a0"]], 0, 0, 0, 1) +
-    linear("side", [[0, "#2a0fa8"], [1, "#100447"]], 0, 0, 0, 1) +
-    linear("sidePale", [[0, "#6d66a8"], [1, "#3f3a72"]], 0, 0, 0, 1) +
-    linear("arrow", [[0, "#8f6dff", 0], [0.35, "#8f6dff", 0.55], [1, "#5a35e8", 1]], 0, 1, 1, 0) +
-    linear("shine", [[0, "#ffffff", 0.55], [1, "#ffffff", 0]], 0, 0, 1, 0);
-  let body = `
-<ellipse cx="380" cy="${base + 6}" rx="330" ry="34" fill="#7c5cf5" opacity="0.5" filter="url(#glow)"/>
-<path d="M30 ${base + 10} L700 ${base - 30}" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
-<path d="M60 ${base + 44} L720 ${base + 4}" stroke="#a99cf0" stroke-width="1.2" opacity="0.5"/>`;
-  heights.forEach((height, index) => {
-    const x = 96 + index * 96;
-    const y = base - height - index * 5;
-    const bottom = base - index * 5;
-    const width = 56;
-    const dx = 20;
-    const dy = -12;
-    const pale = index < 2;
-    body += `
-<g opacity="${n(0.72 + index * 0.056)}">
-  <polygon points="${x + width},${y} ${x + width + dx},${y + dy} ${x + width + dx},${bottom + dy} ${x + width},${bottom}" fill="url(#${pale ? "sidePale" : "side"})"/>
-  <polygon points="${x},${y} ${x + dx},${y + dy} ${x + width + dx},${y + dy} ${x + width},${y}" fill="${pale ? "#e4e1f6" : "#cbbcff"}"/>
-  <rect x="${x}" y="${y}" width="${width}" height="${bottom - y}" fill="url(#${pale ? "frontPale" : "front"})"/>
-  <rect x="${x}" y="${y}" width="15" height="${bottom - y}" fill="url(#shine)"/>
-  <rect x="${x}" y="${bottom - 46}" width="${width}" height="46" fill="#c084fc" opacity="0.28"/>
-</g>`;
-  });
-  body += `
-<path d="M70 300 C 250 290, 440 210, 640 52" fill="none" stroke="url(#arrow)" stroke-width="15" stroke-linecap="round"/>
-<polygon points="690,8 668,96 612,38" fill="#5a35e8"/>
-<polygon points="690,8 668,96 648,52" fill="#3a1bc0"/>`;
-  return svg(760, 640, defs, body);
-}
-
-/* ---------- Life at Aventra: interlocked glass loops ---------- */
-function loops() {
-  // Wide, translucent glass bands that overlap, as in the design: two pale rings
-  // crossing above a deeper violet one, with no solid object in the middle.
-  const defs =
-    blur("soft", 12) +
-    blur("glow", 34) +
-    blur("sheen", 6) +
-    linear("glassA", [[0, "#ffffff", 0.85], [0.5, "#e4defa", 0.5], [1, "#a898ee", 0.55]]) +
-    linear("glassB", [[0, "#ffffff", 0.9], [0.55, "#d9d2f7", 0.45], [1, "#8f7cf0", 0.5]], 1, 0, 0, 1) +
-    linear("deep", [[0, "#b79bff", 0.55], [0.45, "#6a3ff0", 0.82], [1, "#22097a", 0.92]], 0, 0, 1, 1) +
-    linear("hot", [[0, "#c58bff", 0], [0.5, "#b46bff", 0.9], [1, "#7a3cff", 0]], 0, 0, 1, 0);
-
-  const band = ({ cx, cy, rx, ry, rotate, width, fill, shadow = 0.18 }) => `
-<g transform="rotate(${rotate} ${cx} ${cy})">
-  <ellipse cx="${cx + 8}" cy="${cy + 16}" rx="${rx}" ry="${ry}" fill="none" stroke="#1b1250" stroke-width="${width}" opacity="${shadow}" filter="url(#soft)"/>
-  <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="url(#${fill})" stroke-width="${width}"/>
-  <ellipse cx="${cx}" cy="${cy}" rx="${rx + width / 2 - 1.5}" ry="${ry + width / 2 - 1.5}" fill="none" stroke="#ffffff" stroke-width="2.4" opacity="0.9"/>
-  <ellipse cx="${cx}" cy="${cy}" rx="${rx - width / 2 + 1.5}" ry="${ry - width / 2 + 1.5}" fill="none" stroke="#ffffff" stroke-width="1.8" opacity="0.7"/>
-  <ellipse cx="${cx}" cy="${cy}" rx="${rx + width * 0.22}" ry="${ry + width * 0.22}" fill="none" stroke="#ffffff" stroke-width="${n(width * 0.16)}" opacity="0.22" filter="url(#sheen)"/>
-</g>`;
-
-  const body =
-    `\n<ellipse cx="360" cy="350" rx="260" ry="230" fill="#8f6dff" opacity="0.3" filter="url(#glow)"/>` +
-    // Deep violet band at the back and bottom.
-    band({ cx: 390, cy: 410, rx: 200, ry: 128, rotate: 24, width: 96, fill: "deep", shadow: 0.24 }) +
-    `\n<path d="M250 470 C 330 520, 450 520, 560 440" fill="none" stroke="url(#hot)" stroke-width="26" stroke-linecap="round" opacity="0.75" filter="url(#sheen)"/>` +
-    // Large pale band on the left.
-    band({ cx: 320, cy: 300, rx: 176, ry: 170, rotate: -18, width: 104, fill: "glassA" }) +
-    // Smaller pale band crossing it at the top right.
-    band({ cx: 420, cy: 262, rx: 138, ry: 150, rotate: 26, width: 84, fill: "glassB" });
-  return svg(720, 660, defs, body);
-}
-
-/* ---------- Learning: stacked cubes ---------- */
-function cubes() {
-  const size = 78;
-  const w = size * 0.866;
-  const defs =
-    blur("soft", 10) +
-    blur("glow", 30) +
-    linear("topSolid", [[0, "#efeaff"], [1, "#b3a0ff"]]) +
-    linear("leftSolid", [[0, "#7b5cf5"], [1, "#3a1bc0"]], 0, 0, 0, 1) +
-    linear("rightSolid", [[0, "#3a1bc0"], [1, "#14064f"]], 0, 0, 0, 1) +
-    linear("topGlass", [[0, "#ffffff", 0.95], [1, "#dcd6ff", 0.6]]) +
-    linear("leftGlass", [[0, "#ffffff", 0.7], [1, "#c5bcf2", 0.35]], 0, 0, 0, 1) +
-    linear("rightGlass", [[0, "#bdb4ee", 0.6], [1, "#8279c4", 0.4]], 0, 0, 0, 1);
-  const cube = (col, row, level, tone) => {
-    // col/row walk the two ground axes of the isometric grid, level goes up.
-    const cx = 330 + (col - row) * w;
-    const cy = 470 + (col + row) * (size / 2) - level * size;
-    const p = (x, y) => `${n(cx + x)},${n(cy + y)}`;
-    const kind = tone === "glass" ? "Glass" : "Solid";
-    return `
-<g>
-  <polygon points="${p(-w, -size / 2)} ${p(0, 0)} ${p(0, size)} ${p(-w, size / 2)}" fill="url(#left${kind})"/>
-  <polygon points="${p(0, 0)} ${p(w, -size / 2)} ${p(w, size / 2)} ${p(0, size)}" fill="url(#right${kind})"/>
-  <polygon points="${p(0, -size)} ${p(w, -size / 2)} ${p(0, 0)} ${p(-w, -size / 2)}" fill="url(#top${kind})"/>
-  <path d="M ${p(-w, -size / 2)} L ${p(0, 0)} L ${p(w, -size / 2)} M ${p(0, 0)} L ${p(0, size)}" fill="none" stroke="#ffffff" stroke-width="1.6" opacity="0.9"/>
-  <polygon points="${p(0, -size)} ${p(w, -size / 2)} ${p(w, size / 2)} ${p(0, size)} ${p(-w, size / 2)} ${p(-w, -size / 2)}" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.55"/>
-</g>`;
+  // Pieces whose missing part was painted in by AI (image outpainting), saved in brand-source/.
+  // They replace the cut-off version above. box and ellipse are in that file's own pixels; the
+  // ellipse (cx, cy, rx, ry) is a rough guide around the piece; the exact outline is found from it.
+  const extended = {
+    loops: { file: "brand-source/loops-extended.png", box: [470, 100, 1800, 1610], ellipse: [1345, 892, 792, 722], width: 1100 },
   };
-  // Painted back-to-front, bottom-to-top.
-  const stack = [
-    [-1, 0, 0, "glass"], [0, -1, 0, "solid"], [0, 0, 0, "solid"], [1, 0, 0, "glass"], [0, 1, 0, "solid"],
-    [-1, 0, 1, "solid"], [0, -1, 1, "glass"], [0, 0, 1, "glass"], [1, 0, 1, "solid"],
-    [0, -1, 2, "solid"], [0, 0, 2, "solid"],
-    [0, -1, 3, "glass"],
-  ];
-  let body = `
-<ellipse cx="330" cy="330" rx="220" ry="250" fill="#7c5cf5" opacity="0.22" filter="url(#glow)"/>
-<ellipse cx="340" cy="590" rx="210" ry="34" fill="#1b1250" opacity="0.22" filter="url(#soft)"/>`;
-  for (const [col, row, level, tone] of stack) body += cube(col, row, level, tone);
-  return svg(660, 660, defs, body);
-}
-
-/* ---------- Leadership: compass ---------- */
-function compass() {
-  const defs =
-    blur("soft", 12) +
-    blur("glow", 30) +
-    linear("metal", [[0, "#ffffff"], [0.35, "#d7d5e6"], [0.7, "#8e8bab"], [1, "#55527a"]]) +
-    linear("metalDark", [[0, "#8e8bab"], [1, "#3b3860"]], 0, 0, 0, 1) +
-    linear("face", [[0, "#f4f3fa"], [1, "#c9c7dc"]]) +
-    linear("needleA", [[0, "#d39bff"], [1, "#6a2ff0"]], 1, 0, 0, 1) +
-    linear("needleB", [[0, "#5a1fe0"], [1, "#22097a"]], 1, 0, 0, 1) +
-    linear("tailA", [[0, "#ffffff"], [1, "#a9a6c2"]]) +
-    linear("tailB", [[0, "#8e8bab"], [1, "#4c4970"]]);
-  let ticks = "";
-  for (let angle = 0; angle < 360; angle += 15) {
-    const major = angle % 90 === 0;
-    ticks += `\n    <line x1="0" y1="${major ? -196 : -200}" x2="0" y2="${major ? -168 : -184}" stroke="#56537a" stroke-width="${major ? 5 : 2.2}" opacity="0.7" transform="rotate(${angle})"/>`;
+  for (const [name, piece] of Object.entries(extended)) {
+    if (!fs.existsSync(piece.file)) continue;
+    const [left, top, width, height] = piece.box;
+    const scale = piece.width / width;
+    const { data, info } = await sharp(piece.file)
+      .extract({ left, top, width, height })
+      .resize({ width: piece.width })
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    // Cut the piece out along its real silhouette. The painted background is smooth, so along
+    // each ray from the centre the outermost sharp change in colour is the edge of the glass.
+    const [ex, ey, erx, ery] = [piece.ellipse[0] - left, piece.ellipse[1] - top, piece.ellipse[2], piece.ellipse[3]].map((v) => v * scale);
+    const soft = await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).blur(2).raw().toBuffer();
+    const at = (px, py) => {
+      const sx = Math.min(info.width - 1, Math.max(0, Math.round(px)));
+      const sy = Math.min(info.height - 1, Math.max(0, Math.round(py)));
+      const i = (sy * info.width + sx) * 4;
+      return [soft[i], soft[i + 1], soft[i + 2]];
+    };
+    const STEPS = 720;
+    const edge = new Array(STEPS);
+    for (let step = 0; step < STEPS; step += 1) {
+      const angle = (step / STEPS) * Math.PI * 2;
+      const [ux, uy] = [Math.cos(angle), Math.sin(angle)];
+      const reach = 1.1; // start a little outside the guide ellipse
+      let found = 0.8;
+      for (let t = reach; t > 0.7; t -= 0.004) {
+        const p = at(ex + ux * erx * t, ey + uy * ery * t);
+        const q = at(ex + ux * erx * (t - 0.012), ey + uy * ery * (t - 0.012));
+        const change = Math.abs(p[0] - q[0]) + Math.abs(p[1] - q[1]) + Math.abs(p[2] - q[2]);
+        if (change > 26) {
+          found = t - 0.008;
+          break;
+        }
+      }
+      edge[step] = found;
+    }
+    // Median over neighbouring rays removes stray hits (e.g. a light beam in the background).
+    const outline = edge.map((_, i) => {
+      const near = [];
+      for (let d = -22; d <= 22; d += 1) near.push(edge[(i + d + STEPS) % STEPS]);
+      return near.sort((m, n) => m - n)[11]; // a low-ish value: stray hits are always too far out
+    });
+    for (let y = 0; y < info.height; y += 1) {
+      for (let x = 0; x < info.width; x += 1) {
+        const dx = (x - ex) / erx;
+        const dy = (y - ey) / ery;
+        const e = Math.hypot(dx, dy);
+        const pos = ((Math.atan2(dy, dx) / (Math.PI * 2) + 1) % 1) * STEPS;
+        const i0 = Math.floor(pos) % STEPS;
+        const limit = outline[i0] + (outline[(i0 + 1) % STEPS] - outline[i0]) * (pos - Math.floor(pos));
+        data[(y * info.width + x) * 4 + 3] = Math.round((1 - smooth((e - (limit - 0.012)) / 0.02)) * 255);
+      }
+    }
+    // A soft, blended shadow on the "floor" under the piece (plus a faint violet glow), instead
+    // of the hard-edged shadow the AI painted, which is cut away with the background.
+    const pad = 70;
+    const W = info.width;
+    const H = info.height + pad;
+    const shadow = Buffer.from(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
+        <defs><filter id="b" x="-30%" y="-200%" width="160%" height="500%"><feGaussianBlur stdDeviation="26"/></filter></defs>
+        <ellipse cx="${ex + erx * 0.06}" cy="${ey + ery * 0.97}" rx="${erx * 0.82}" ry="${ery * 0.11}" fill="#1a1838" opacity="0.5" filter="url(#b)"/>
+        <ellipse cx="${ex + erx * 0.12}" cy="${ey + ery * 1.0}" rx="${erx * 0.5}" ry="${ery * 0.05}" fill="#6a45f0" opacity="0.45" filter="url(#b)"/>
+      </svg>`,
+    );
+    const cutout = await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toBuffer();
+    await sharp({ create: { width: W, height: H, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+      .composite([{ input: shadow, left: 0, top: 0 }, { input: cutout, left: 0, top: 0 }])
+      .webp({ quality: 90, alphaQuality: 95 })
+      .toFile(`${OUT}/${name}.webp`);
+    sizes[name] = { width: W, height: H, v: stamp };
+    console.log(`${name}.webp  ${W}x${H}  (AI-extended)`);
   }
-  const body = `
-<ellipse cx="350" cy="360" rx="270" ry="180" fill="#7c5cf5" opacity="0.22" filter="url(#glow)"/>
-<ellipse cx="362" cy="420" rx="268" ry="150" fill="#1b1250" opacity="0.22" filter="url(#soft)"/>
-<g transform="translate(350 340) rotate(-16) scale(1 0.62)">
-  <circle cx="0" cy="26" r="262" fill="url(#metalDark)"/>
-  <circle cx="0" cy="0" r="262" fill="url(#metal)"/>
-  <circle cx="0" cy="0" r="262" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>
-  <circle cx="0" cy="8" r="222" fill="#6d6a90" opacity="0.55"/>
-  <circle cx="0" cy="0" r="222" fill="url(#face)"/>
-  <circle cx="0" cy="0" r="150" fill="none" stroke="#8e8bab" stroke-width="1.6" opacity="0.6"/>
-  <circle cx="0" cy="0" r="92" fill="none" stroke="#8e8bab" stroke-width="1.2" opacity="0.45"/>
-  <path d="M-222 0 H222 M0 -222 V222" stroke="#8e8bab" stroke-width="1.2" opacity="0.4"/>${ticks}
-</g>
-<g>
-  <polygon points="352,352 146,512 318,380" fill="url(#tailA)"/>
-  <polygon points="352,352 146,512 372,404" fill="url(#tailB)"/>
-  <polygon points="572,150 262,330 352,352" fill="url(#needleA)"/>
-  <polygon points="572,150 352,352 396,452" fill="url(#needleB)"/>
-  <path d="M572 150 L262 330" stroke="#ffffff" stroke-width="2.4" opacity="0.8" stroke-linecap="round"/>
-  <path d="M572 150 L352 352" stroke="#f0d9ff" stroke-width="1.6" opacity="0.7"/>
-</g>`;
-  return svg(700, 640, defs, body);
-}
 
-/* ---------- Contact: chat bubble ---------- */
-function bubble() {
-  const defs =
-    blur("soft", 14) +
-    blur("glow", 30) +
-    linear("body", [[0, "#c89bff"], [0.45, "#8f4dff"], [1, "#3f18d0"]]) +
-    linear("gloss", [[0, "#ffffff", 0.5], [1, "#ffffff", 0]], 0, 0, 0, 1) +
-    linear("halo", [[0, "#ffffff", 0.9], [1, "#ffffff", 0.15]]);
-  const shape = "M214 150 H486 a70 70 0 0 1 70 70 V330 a70 70 0 0 1 -70 70 H330 L246 470 V400 H214 a70 70 0 0 1 -70 -70 V220 a70 70 0 0 1 70 -70 Z";
-  let halos = "";
-  [[350, 280, 300, 210, -8], [350, 280, 262, 176, 14], [350, 280, 330, 236, 22]].forEach(([cx, cy, rx, ry, rotate], index) => {
-    halos += `\n<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#ffffff" opacity="${0.1 - index * 0.02}" transform="rotate(${rotate} ${cx} ${cy})"/>
-<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="url(#halo)" stroke-width="1.6" opacity="${0.8 - index * 0.15}" transform="rotate(${rotate} ${cx} ${cy})"/>`;
-  });
-  const body = `
-<ellipse cx="350" cy="290" rx="250" ry="180" fill="#8f6dff" opacity="0.3" filter="url(#glow)"/>${halos}
-<path d="${shape}" fill="#2a0fa8" opacity="0.4" filter="url(#soft)" transform="translate(8 22)"/>
-<path d="${shape}" fill="url(#body)"/>
-<path d="M214 150 H486 a70 70 0 0 1 70 70 V244 C 430 200, 270 200, 144 244 V220 a70 70 0 0 1 70 -70 Z" fill="url(#gloss)"/>
-<path d="${shape}" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.55"/>
-<circle cx="262" cy="278" r="22" fill="#ffffff"/>
-<circle cx="350" cy="278" r="22" fill="#ffffff"/>
-<circle cx="438" cy="278" r="22" fill="#ffffff"/>`;
-  return svg(700, 560, defs, body);
-}
-
-/* ---------- Home: globe rising from the corner (drawn for a dark background) ---------- */
-function globe() {
-  const cx = 560;
-  const cy = 640;
-  const radius = 540;
-  const defs =
-    blur("glow", 26) +
-    blur("fine", 3) +
-    radial("planet", [[0, "#3a2f6e"], [0.6, "#211b3d"], [1, "#14121f"]], 0.3, 0.2, 0.9) +
-    linear("rim", [[0, "#ffffff", 0.95], [0.5, "#a98bff", 0.8], [1, "#6a45f0", 0]], 0, 0, 1, 0);
-  // Points on the visible hemisphere, from a latitude/longitude grid tilted towards the viewer.
-  const points = [];
-  for (let lat = -10; lat <= 84; lat += 6) {
-    for (let lon = -87; lon <= 87; lon += 6) {
-      const phi = (lat * Math.PI) / 180;
-      const theta = ((lon + lat * 0.5) * Math.PI) / 180;
-      const depth = Math.cos(phi) * Math.cos(theta);
-      if (depth < 0.12) continue;
-      const x = cx + radius * Math.cos(phi) * Math.sin(theta);
-      const y = cy - radius * Math.sin(phi);
-      if (x < -10 || x > 770 || y > 530) continue;
-      points.push({ x, y, depth, key: `${lat}:${lon}` });
+  // The crystal "A" from the design's home page, completed and sharpened by AI
+  // (brand-source/a-extended.png). Its grey backdrop is darkened towards the site's dark page
+  // colour and the whole image fades out towards its edges, so the "A" keeps its own light
+  // rays and glow but has no visible frame.
+  if (fs.existsSync("brand-source/a-extended.png")) {
+    const { data, info } = await sharp("brand-source/a-extended.png").resize({ width: 1400 }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const [cx, cy, rx, ry] = [0.535 * info.width, 0.5 * info.height, 0.53 * info.width, 0.55 * info.height];
+    for (let y = 0; y < info.height; y += 1) {
+      for (let x = 0; x < info.width; x += 1) {
+        const i = (y * info.width + x) * 4;
+        for (let c = 0; c < 3; c += 1) data[i + c] = Math.max(0, Math.round(((data[i + c] - 38) * 255) / 217));
+        const e = Math.hypot((x - cx) / rx, (y - cy) / ry);
+        data[i + 3] = Math.round((1 - smooth((e - 0.5) / 0.5)) * 255);
+      }
     }
+    await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).webp({ quality: 90, alphaQuality: 95 }).toFile(`${OUT}/a.webp`);
+    sizes.a = { width: info.width, height: info.height, v: stamp };
+    console.log(`a.webp  ${info.width}x${info.height}  (AI-extended)`);
   }
-  let links = "";
-  let dots = "";
-  points.forEach((point, index) => {
-    const bright = (index * 7) % 11 === 0;
-    dots += `\n<circle cx="${n(point.x)}" cy="${n(point.y)}" r="${n(bright ? 3.6 : 1.3 + point.depth * 1.5)}" fill="${bright ? "#ffffff" : "#b9a8ff"}" opacity="${n(bright ? 0.95 : 0.4 + point.depth * 0.55)}"/>`;
-    const next = points[index + 1];
-    if (next && (index * 5) % 3 !== 0 && Math.hypot(next.x - point.x, next.y - point.y) < 90) {
-      links += `\n<line x1="${n(point.x)}" y1="${n(point.y)}" x2="${n(next.x)}" y2="${n(next.y)}" stroke="#8f6dff" stroke-width="1" opacity="0.4"/>`;
-    }
-    // A few diagonal links to the row above give the network its woven look.
-    const above = points.find((other) => other.y < point.y - 20 && Math.hypot(other.x - point.x, other.y - point.y) < 75);
-    if (above && index % 4 === 0) {
-      links += `
-<line x1="${n(point.x)}" y1="${n(point.y)}" x2="${n(above.x)}" y2="${n(above.y)}" stroke="#b9a8ff" stroke-width="1" opacity="0.4"/>`;
-    }
-  });
-  const body = `
-<circle cx="${cx}" cy="${cy}" r="${radius + 14}" fill="#7c5cf5" opacity="0.45" filter="url(#glow)"/>
-<circle cx="${cx}" cy="${cy}" r="${radius}" fill="url(#planet)"/>${links}${dots}
-<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="url(#rim)" stroke-width="7" opacity="0.6" filter="url(#fine)"/>
-<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="url(#rim)" stroke-width="2.4"/>`;
-  return svg(760, 520, defs, body);
-}
 
-fs.mkdirSync(OUT, { recursive: true });
-for (const [name, draw] of Object.entries({ rings, network, bars, loops, cubes, compass, bubble, globe })) {
-  const markup = draw();
-  fs.writeFileSync(`${OUT}/${name}.svg`, markup);
-  const size = markup.match(/viewBox="0 0 (\d+) (\d+)"/);
-  console.log(`${name}.svg  ${size[1]}x${size[2]}  ${(markup.length / 1024).toFixed(1)} KB`);
-}
+  fs.writeFileSync(`${OUT}/sizes.json`, JSON.stringify(sizes, null, 2) + "\n");
+})();

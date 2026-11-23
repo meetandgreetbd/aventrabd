@@ -1,85 +1,92 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { ArrowRight, Lightbulb, Play, Sprout, Star, Users } from "lucide-react";
-import { ButtonLink, Container, Eyebrow, IconCard, safeHref } from "@/components/ui";
-import { Reveal } from "@/components/ui/Reveal";
-import { Art, CrystalA } from "@/components/visuals";
+import { RefButton, RefCards, RefCorner, RefFeatures, RefPage, RefSections, u } from "@/components/ref";
+import { safeHref } from "@/components/ui";
+import { pageFaqs, pageSections } from "@/lib/content";
 import { getPage } from "@/lib/cms";
 import { pageMetadata } from "@/lib/seo";
+import sizes from "../../../public/art/sizes.json";
 
 export const generateMetadata = () => pageMetadata("home");
 
 const valueIcons = [Lightbulb, Users, Sprout, Star];
 
+// All numbers below are measurements from the design, in design units (see components/ref).
 export default async function HomePage() {
   const { content } = await getPage("home");
+  // The design breaks the headline as "Building a / Smarter, / Stronger Tomorrow":
+  // the last word of the lead stays on one line with the highlighted word.
+  const words = content.titleLead.split(" ");
+  const lastWord = words.pop();
+
   return (
-    <div className="backdrop-dark overflow-hidden text-white">
-      <section className="pt-32 pb-12 sm:pt-40">
-        <Container className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr]">
-          <Reveal>
-            <Eyebrow dark>{content.eyebrow}</Eyebrow>
-            <h1 className="mt-5 text-4xl font-bold leading-[1.06] tracking-tight sm:text-6xl lg:text-[4.1rem]">
-              {content.titleLead} <span className="text-gradient">{content.titleAccent}</span>
-            </h1>
-            <p className="mt-6 max-w-md text-base leading-relaxed text-white/70 sm:text-lg">
-              {content.text}
-            </p>
-            <div className="mt-9 flex flex-wrap gap-4">
-              <ButtonLink href="/about">{content.primaryCta}</ButtonLink>
-              <ButtonLink
-                href={safeHref(content.secondaryCtaUrl, "/about")}
-                variant="ghost-dark"
-                icon={
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full border border-white/50">
-                    <Play className="h-3 w-3 fill-current" />
-                  </span>
-                }
-              >
-                {content.secondaryCta}
-              </ButtonLink>
-            </div>
-          </Reveal>
-          <Reveal delay={0.15} className="order-first lg:order-none">
-            <div className="mx-auto w-3/5 lg:w-[125%] lg:translate-x-[6%]">
-              <CrystalA />
-            </div>
-          </Reveal>
-        </Container>
-      </section>
+    <RefPage dark bottom={22}>
+      <RefCorner name="globe" />
 
-      <section className="py-10">
-        <Container>
-          <ul className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {content.values.map((value, index) => (
-              <li key={value}>
-                <Reveal delay={index * 0.08} className="h-full">
-                  <IconCard icon={valueIcons[index % valueIcons.length]} title={value} dark />
-                </Reveal>
-              </li>
-            ))}
-          </ul>
-        </Container>
-      </section>
-
-      <section className="relative pt-14 pb-28 lg:pb-36">
-        {/* The globe rises from the bottom-right corner and is cropped by the page edge, as in the design. */}
-        <Art name="globe" className="absolute right-0 bottom-0 w-[26rem] opacity-70 lg:w-[46rem] lg:opacity-100" />
-        <Container className="relative">
-          <Reveal>
-            <h2 className="max-w-md text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-              {content.sectionTitle}
-            </h2>
-            <p className="mt-5 max-w-md leading-relaxed text-white/70">{content.sectionText}</p>
-            <Link
-              href="/culture"
-              className="group mt-7 inline-flex items-center gap-2 font-semibold text-violet-300 transition hover:text-violet-200"
+      {/* One full screen: headline on the left, the glowing "A" beside it. */}
+      <section className="ref-hero" style={{ "--x": 226, "--aw": 150, "--ratio": 0.89 } as CSSProperties}>
+        {/* The crystal "A" from the design (completed by AI), a small gap to the right of the headline. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`/art/a.webp?v=${sizes.a.v}`}
+          alt=""
+          aria-hidden="true"
+          width={sizes.a.width}
+          height={sizes.a.height}
+          className="ref-art home-a"
+        />
+        <p className="ref-eyebrow" style={{ color: "rgb(255 255 255 / 0.82)", fontSize: `max(11px, ${u(7.6)})` }}>
+          {content.eyebrow}
+        </p>
+        <h1 className="ref-h1" style={{ color: "#fff", fontSize: `max(36px, ${u(25)})` }}>
+          <span className="block" style={{ maxWidth: u(160) }}>
+            {words.join(" ")}
+          </span>
+          <span className="whitespace-nowrap">
+            {lastWord} <span className="text-gradient">{content.titleAccent}</span>
+          </span>
+        </h1>
+        <p className="ref-lead" style={{ color: "rgb(255 255 255 / 0.8)", maxWidth: `max(240px, ${u(190)})` }}>
+          {content.text}
+        </p>
+        <div className="flex flex-wrap items-center" style={{ gap: u(12) }}>
+          <RefButton href="/about">{content.primaryCta}</RefButton>
+          <Link href={safeHref(content.secondaryCtaUrl, "/about")} className="ref-btn ref-btn-ghost">
+            <span
+              className="flex items-center justify-center rounded-full border border-white/60"
+              style={{ width: "1.9em", height: "1.9em" }}
             >
-              {content.sectionCta}
-              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-            </Link>
-          </Reveal>
-        </Container>
+              <Play className="fill-current" style={{ width: "0.8em", height: "0.8em" }} />
+            </span>
+            {content.secondaryCta}
+          </Link>
+        </div>
       </section>
-    </div>
+
+      <RefCards top={10} items={content.values} icons={valueIcons} dark />
+
+      <RefFeatures {...content.more} dark />
+
+      <RefSections sections={pageSections.home} faq={pageFaqs.home} dark />
+
+      <section style={{ marginTop: u(34) }}>
+        <h2 className="ref-h2" style={{ maxWidth: u(150), fontSize: `max(24px, ${u(14.5)})`, lineHeight: 1.25 }}>
+          {content.sectionTitle}
+        </h2>
+        <p className="ref-text" style={{ color: "rgb(255 255 255 / 0.78)", maxWidth: `max(240px, ${u(150)})`, marginTop: u(9) }}>
+          {content.sectionText}
+        </p>
+        <Link
+          href="/culture"
+          className="ref-text group inline-flex items-center font-semibold"
+          style={{ color: "var(--color-brand-soft)", gap: u(4), marginTop: u(8) }}
+        >
+          {content.sectionCta}
+          <ArrowRight className="transition group-hover:translate-x-1" style={{ width: "1.1em", height: "1.1em" }} />
+        </Link>
+      </section>
+
+    </RefPage>
   );
 }

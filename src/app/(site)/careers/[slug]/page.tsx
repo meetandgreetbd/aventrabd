@@ -40,7 +40,7 @@ export default async function JobPage({ params }: Props) {
     <div className="backdrop-light pt-32 pb-24 sm:pt-36">
       <Container>
         <Link
-          href="/careers#open-positions"
+          href="/careers/positions"
           className="inline-flex items-center gap-2 text-sm font-semibold text-brand hover:underline"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -85,7 +85,7 @@ export default async function JobPage({ params }: Props) {
                 <ul className="mt-4 space-y-3">
                   {requirements.map((item, index) => (
                     <li key={index} className="flex gap-3 text-ink-soft">
-                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-100 text-brand">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-pale text-brand">
                         <Check className="h-3.5 w-3.5" strokeWidth={3} />
                       </span>
                       {item}
@@ -123,7 +123,7 @@ export default async function JobPage({ params }: Props) {
               ) : (
                 <p className="mt-4 leading-relaxed text-ink-soft">
                   This position is no longer accepting applications. Take a look at our{" "}
-                  <Link href="/careers#open-positions" className="font-semibold text-brand hover:underline">
+                  <Link href="/careers/positions" className="font-semibold text-brand hover:underline">
                     other open positions
                   </Link>
                   .

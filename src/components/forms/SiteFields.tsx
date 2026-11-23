@@ -1,5 +1,5 @@
 const control =
-  "mt-1.5 w-full rounded-2xl border border-white/80 bg-white/70 px-4 py-3 text-sm text-ink shadow-inner outline-none transition placeholder:text-ink-soft/60 focus:border-violet-400 focus:ring-2 focus:ring-violet-300/60";
+  "mt-1.5 w-full rounded-2xl border border-white/80 bg-white/70 px-4 py-3 text-sm text-ink shadow-inner outline-none transition placeholder:text-ink-soft/60 focus:border-brand-soft focus:ring-2 focus:ring-brand-soft/60";
 
 type FieldProps = {
   label: string;
@@ -33,7 +33,7 @@ export function SiteField({ label, name, type = "text", required, autoComplete, 
           aria-describedby={hint ? `${id}-hint` : undefined}
           className={
             type === "file"
-              ? `${control} file:mr-3 file:rounded-full file:border-0 file:bg-violet-100 file:px-4 file:py-1.5 file:text-sm file:font-semibold file:text-brand`
+              ? `${control} file:mr-3 file:rounded-full file:border-0 file:bg-brand-pale file:px-4 file:py-1.5 file:text-sm file:font-semibold file:text-brand`
               : control
           }
         />

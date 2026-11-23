@@ -42,19 +42,19 @@ export function Header() {
   const surface = scrolled
     ? dark
       ? "bg-night/75 backdrop-blur-xl border-b border-white/10"
-      : "bg-white/65 backdrop-blur-xl border-b border-white/70 shadow-[0_8px_30px_-18px_rgba(76,29,149,0.4)]"
+      : "bg-white/65 backdrop-blur-xl border-b border-white/70 shadow-[0_8px_30px_-18px_rgba(42,15,168,0.35)]"
     : "border-b border-transparent";
 
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${surface} ${dark ? "text-white" : "text-ink"}`}
     >
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-4 sm:px-8 sm:py-5">
+      <div className="ref-header">
         <Link href="/" aria-label="Aventra home" onClick={() => setOpen(false)}>
-          <Logo onDark={dark} className="h-11 sm:h-14" />
+          <Logo onDark={dark} className="ref-logo" />
         </Link>
 
-        <nav aria-label="Main" className="hidden items-center gap-7 lg:flex">
+        <nav aria-label="Main" className="ref-nav">
           {links.map((link) => {
             const active = isActive(pathname, link.href);
             return (
@@ -62,7 +62,7 @@ export function Header() {
                 key={link.href}
                 href={link.href}
                 aria-current={active ? "page" : undefined}
-                className={`relative text-sm font-semibold transition-opacity hover:opacity-100 ${active ? "opacity-100" : "opacity-80"}`}
+                className={`relative transition-opacity hover:opacity-100 ${active ? "opacity-100" : "opacity-80"}`}
               >
                 {link.label}
                 {active && (
@@ -73,7 +73,7 @@ export function Header() {
           })}
           <Link
             href="/careers"
-            className="btn-brand rounded-full px-5 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5"
+            className="ref-join btn-brand"
           >
             Join Us
           </Link>
@@ -81,7 +81,7 @@ export function Header() {
 
         <button
           type="button"
-          className="flex h-11 w-11 items-center justify-center rounded-full lg:hidden"
+          className="ref-menu-button flex h-11 w-11 items-center justify-center rounded-full"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
@@ -93,7 +93,7 @@ export function Header() {
       {open && (
         <nav
           aria-label="Mobile"
-          className={`flex h-[calc(100dvh-4.75rem)] flex-col gap-1 overflow-y-auto px-5 pb-8 pt-2 lg:hidden ${dark ? "bg-night" : "bg-mist"}`}
+          className={`flex h-[calc(100dvh-4rem)] flex-col gap-1 overflow-y-auto px-5 pb-8 pt-2 ${dark ? "bg-night" : "bg-mist"}`}
         >
           {[...links, { href: "/life", label: "Life at Aventra" }, { href: "/leadership", label: "Leadership" }].map(
             (link) => (
@@ -103,7 +103,7 @@ export function Header() {
                 onClick={() => setOpen(false)}
                 aria-current={isActive(pathname, link.href) ? "page" : undefined}
                 className={`rounded-2xl px-4 py-3.5 text-lg font-semibold ${
-                  isActive(pathname, link.href) ? "bg-violet-500/15 text-brand-bright" : ""
+                  isActive(pathname, link.href) ? "bg-brand-bright/15 text-brand-bright" : ""
                 }`}
               >
                 {link.label}

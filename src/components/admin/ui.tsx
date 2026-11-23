@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 const control =
-  "mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-200";
+  "mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-brand-bright focus:ring-2 focus:ring-brand-light";
 
 type BaseProps = { label: string; name: string; hint?: string; required?: boolean };
 
@@ -10,7 +10,7 @@ function Label({ label, name, required }: BaseProps) {
   return (
     <label htmlFor={`f-${name}`} className="text-sm font-semibold text-slate-800">
       {label}
-      {required && <span className="text-violet-700"> *</span>}
+      {required && <span className="text-brand"> *</span>}
     </label>
   );
 }
@@ -120,7 +120,7 @@ export function Checkbox({
           type="checkbox"
           name={name}
           defaultChecked={defaultChecked}
-          className="h-4 w-4 rounded border-slate-300 accent-violet-700"
+          className="h-4 w-4 rounded border-slate-300 accent-brand"
         />
         {label}
       </label>
@@ -199,7 +199,7 @@ export function PageTitle({
   return (
     <div className="mb-6">
       {back && (
-        <Link href={back.href} className="text-sm font-medium text-violet-700 hover:underline">
+        <Link href={back.href} className="text-sm font-medium text-brand hover:underline">
           ← {back.label}
         </Link>
       )}
@@ -211,7 +211,7 @@ export function PageTitle({
         {action && (
           <Link
             href={action.href}
-            className="rounded-lg bg-violet-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-800"
+            className="rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-deep"
           >
             {action.label}
           </Link>
@@ -225,9 +225,9 @@ const badgeTones: Record<string, string> = {
   open: "bg-emerald-100 text-emerald-800",
   shortlisted: "bg-emerald-100 text-emerald-800",
   visible: "bg-emerald-100 text-emerald-800",
-  admin: "bg-violet-100 text-violet-800",
-  new: "bg-violet-100 text-violet-800",
-  unread: "bg-violet-100 text-violet-800",
+  admin: "bg-brand-pale text-brand-deep",
+  new: "bg-brand-pale text-brand-deep",
+  unread: "bg-brand-pale text-brand-deep",
   draft: "bg-amber-100 text-amber-800",
   reviewed: "bg-sky-100 text-sky-800",
   closed: "bg-slate-200 text-slate-700",

@@ -29,7 +29,7 @@ export default async function TestimonialsPage() {
               <td className="max-w-md">
                 <Link
                   href={`/admin/testimonials/${item.id}`}
-                  className="line-clamp-2 font-semibold text-violet-700 hover:underline"
+                  className="line-clamp-2 font-semibold text-brand hover:underline"
                 >
                   {item.quote}
                 </Link>

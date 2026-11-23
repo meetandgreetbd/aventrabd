@@ -11,7 +11,7 @@ type ButtonProps = {
 };
 
 const buttonBase =
-  "group inline-flex items-center gap-2.5 rounded-full px-6 py-3 text-sm font-bold transition duration-300 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500";
+  "group inline-flex items-center gap-2.5 rounded-full px-6 py-3 text-sm font-bold transition duration-300 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-bright";
 
 const buttonVariants = {
   primary: "btn-brand text-white",
@@ -54,9 +54,11 @@ export function IconCard({
     >
       <Icon
         className={`icon-glow h-10 w-10 ${dark ? "text-brand-bright" : "text-brand"}`}
-        strokeWidth={1.6}
+        strokeWidth={1.7}
+        fill="currentColor"
+        fillOpacity={0.2}
       />
-      <span className="max-w-[8rem] text-[0.95rem] font-semibold leading-snug">{title}</span>
+      <span className="max-w-[9rem] text-base font-semibold leading-snug">{title}</span>
     </div>
   );
 }
@@ -84,7 +86,7 @@ export function CtaBanner({
       <span className="flex-1 text-lg font-bold sm:text-xl">{text}</span>
       <span
         className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition group-hover:translate-x-1 ${
-          dark ? "border border-violet-400/70 text-violet-200" : "bg-brand-deep text-white"
+          dark ? "border border-brand-soft/70 text-brand-light" : "bg-brand-deep text-white"
         }`}
       >
         <ArrowRight className="h-5 w-5" />

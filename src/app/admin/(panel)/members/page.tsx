@@ -27,7 +27,7 @@ export default async function MembersPage() {
           {rows.map((member) => (
             <tr key={member.id}>
               <td>
-                <Link href={`/admin/members/${member.id}`} className="font-semibold text-violet-700 hover:underline">
+                <Link href={`/admin/members/${member.id}`} className="font-semibold text-brand hover:underline">
                   {member.name}
                 </Link>
               </td>

@@ -11,7 +11,7 @@ export default function AdminError({ reset }: { error: Error; reset: () => void 
       <button
         type="button"
         onClick={reset}
-        className="mt-6 rounded-lg bg-violet-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-violet-800"
+        className="mt-6 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-deep"
       >
         Try again
       </button>

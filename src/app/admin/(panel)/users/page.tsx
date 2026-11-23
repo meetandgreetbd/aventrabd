@@ -31,7 +31,7 @@ export default async function UsersPage() {
         {rows.map((user) => (
           <tr key={user.id}>
             <td>
-              <Link href={`/admin/users/${user.id}`} className="font-semibold text-violet-700 hover:underline">
+              <Link href={`/admin/users/${user.id}`} className="font-semibold text-brand hover:underline">
                 {user.name}
               </Link>
               {user.id === current.id && <span className="ml-2 text-xs text-slate-500">(you)</span>}

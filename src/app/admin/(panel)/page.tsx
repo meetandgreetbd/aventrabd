@@ -47,7 +47,7 @@ export default async function DashboardPage() {
           <li key={tile.label}>
             <Link
               href={tile.href}
-              className="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-violet-400"
+              className="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-brand-soft"
             >
               <p className="text-3xl font-bold text-slate-900">{tile.value}</p>
               <p className="mt-1 text-sm text-slate-500">{tile.label}</p>

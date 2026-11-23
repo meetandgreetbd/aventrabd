@@ -23,7 +23,7 @@ export default async function PagesListPage() {
           return (
             <tr key={slug}>
               <td>
-                <Link href={`/admin/pages/${slug}`} className="font-semibold text-violet-700 hover:underline">
+                <Link href={`/admin/pages/${slug}`} className="font-semibold text-brand hover:underline">
                   {pageInfo[slug].name}
                 </Link>
               </td>

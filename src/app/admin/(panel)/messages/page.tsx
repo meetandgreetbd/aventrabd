@@ -26,14 +26,14 @@ export default async function MessagesPage() {
           {rows.map((message) => (
             <li
               key={message.id}
-              className={`rounded-xl border bg-white p-5 shadow-sm ${message.isRead ? "border-slate-200" : "border-violet-300"}`}
+              className={`rounded-xl border bg-white p-5 shadow-sm ${message.isRead ? "border-slate-200" : "border-brand-soft"}`}
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-bold text-slate-900">
                     {message.name} {!message.isRead && <Badge value="unread" />}
                   </p>
-                  <a href={`mailto:${message.email}`} className="text-sm text-violet-700 hover:underline">
+                  <a href={`mailto:${message.email}`} className="text-sm text-brand hover:underline">
                     {message.email}
                   </a>
                 </div>

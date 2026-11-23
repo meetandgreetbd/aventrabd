@@ -53,7 +53,7 @@ export default async function ApplicationsPage({
               <td>
                 <Link
                   href={`/admin/applications/${row.id}`}
-                  className="font-semibold text-violet-700 hover:underline"
+                  className="font-semibold text-brand hover:underline"
                 >
                   {row.name}
                 </Link>

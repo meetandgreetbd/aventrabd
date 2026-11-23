@@ -43,8 +43,9 @@ the address to notify under **Contact info & settings**. A real "from" address n
 
 - `brand-source/aventra-logo.jpg` is the supplied logo. `node scripts/build-logo.cjs` writes the vector logo traced from it (SVG files in
   `public/brand/`, plus the favicon in `src/app/`).
-- `brand-source/design-mockup.jpg` is the supplied design, kept for reference. The page illustrations are vector
-  drawings written by `node scripts/build-art.cjs` into `public/art/`; edit that script to adjust shapes or colours.
+- `brand-source/design-mockup.png` is the original design. `node scripts/build-art.cjs` cuts the real artwork for
+  each page out of it into `public/art/`. The source is small, so the artwork is soft by nature.
+  `scripts/build-art-vector.cjs` writes a sharp hand-drawn alternative set into `public/art-vector/` (not used by the site).
 
 ## Deploying to cPanel (Node.js app + MySQL)
 

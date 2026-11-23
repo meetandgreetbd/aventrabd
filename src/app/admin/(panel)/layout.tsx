@@ -50,7 +50,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           <p className="font-semibold">{user.name}</p>
           <p className="truncate text-xs text-white/60">{user.email}</p>
           <form action={logout} className="mt-3">
-            <button type="submit" className="text-sm font-semibold text-violet-300 hover:text-white">
+            <button type="submit" className="text-sm font-semibold text-brand-soft hover:text-white">
               Log out
             </button>
           </form>
@@ -59,7 +59,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       <main className="min-w-0 flex-1 px-5 py-7 sm:px-8 lg:py-10">
         <div className="mx-auto max-w-5xl">{children}</div>
         <form action={logout} className="mx-auto mt-10 max-w-5xl lg:hidden">
-          <button type="submit" className="text-sm font-semibold text-violet-700">
+          <button type="submit" className="text-sm font-semibold text-brand">
             Log out ({user.name})
           </button>
         </form>

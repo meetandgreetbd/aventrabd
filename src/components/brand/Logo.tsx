@@ -10,7 +10,7 @@ type Props = {
 };
 
 /** The Aventra "A" on its own. */
-export function LogoMark({ className = "" }: Props) {
+export function LogoMark({ className = "", style }: Props & { style?: React.CSSProperties }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -19,6 +19,7 @@ export function LogoMark({ className = "" }: Props) {
       width={512}
       height={512}
       aria-hidden="true"
+      style={style}
       className={`object-contain ${className}`}
     />
   );
