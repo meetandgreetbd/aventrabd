@@ -6,15 +6,7 @@ const nextConfig: NextConfig = {
   experimental: {
     // CV uploads are capped at 5 MB; leave room for multipart overhead.
     serverActions: { bodySizeLimit: "6mb" },
-  },
-  turbopack: {
-    rules: {
-      "*.css": {
-        loaders: ["@tailwindcss/turbopack"],
-        as: "*.css",
-      },
-    },
-  },
+  }
 };
 
 export default nextConfig;
