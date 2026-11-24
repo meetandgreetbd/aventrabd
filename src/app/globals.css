@@ -307,6 +307,26 @@ body {
   padding-bottom: calc(var(--u) * 8);
 }
 
+/*
+ * Large screens: no full-screen height. The hero sizes to its content, so there is no empty
+ * band above and below the text and artwork. Padding keeps it clear of the fixed header.
+ */
+.ref-split {
+  min-height: 100svh; /* one screen on small devices */
+}
+
+@media (min-width: 64rem) {
+  .ref-hero {
+    min-height: 0;
+    padding-top: calc(var(--header) + var(--u) * 4 + 100px);
+    padding-bottom: calc(var(--u) * 10 + 100px);
+  }
+
+  .ref-split {
+    min-height: 0;
+  }
+}
+
 .ref-hero > .ref-art {
   /* centred in the space below the header; with the height limit above it never goes under the header */
   top: calc(50% + var(--header) / 2);

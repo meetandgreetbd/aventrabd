@@ -27,10 +27,9 @@ export default async function ContactPage() {
     <RefPage bottom={34}>
       {/* One full screen: details on the left, the form (with the chat bubble above it) on the right. */}
       <div
-        className="grid items-center md:grid-cols-[1fr_auto]"
+        className="ref-split grid items-center md:grid-cols-[1fr_auto]"
         style={{
           columnGap: u(10),
-          minHeight: "100svh",
           paddingTop: `max(5.5rem, ${u(38)})`,
           paddingBottom: u(10),
         }}
