@@ -9,7 +9,7 @@ export const metadata = { title: "Settings" };
 export default async function SettingsPage() {
   await requireAdmin();
   const settings = await getSettings();
-  const emailReady = Boolean(process.env.RESEND_API_KEY);
+  const emailReady = Boolean(process.env.SMTP_USER && process.env.SMTP_PASS);
 
   return (
     <>
@@ -40,7 +40,7 @@ export default async function SettingsPage() {
           description={
             emailReady
               ? "Choose who is emailed when something new arrives. Everything is always saved in the admin as well."
-              : "Email sending is not configured on the server yet (RESEND_API_KEY is missing), so nothing is emailed. Everything is still saved in the admin."
+              : "Email sending is not configured on the server yet (SMTP_USER and SMTP_PASS are missing), so nothing is emailed. Everything is still saved in the admin."
           }
         >
           <Field

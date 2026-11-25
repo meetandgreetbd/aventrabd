@@ -23,7 +23,10 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${jakarta.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col font-sans">{children}</body>
+      {/* Browser extensions (e.g. ColorZilla's cz-shortcut-listen) add attributes to <body>; ignore those here only. */}
+      <body className="flex min-h-full flex-col font-sans" suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useActionState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
 import { ArrowRight, CircleCheck } from "lucide-react";
 import type { FormState } from "@/server/form";
 
@@ -12,6 +12,8 @@ type Props = {
   variant?: "site" | "admin";
   /** Public forms swap to a thank-you panel once the submission is accepted. */
   replaceOnSuccess?: boolean;
+  /** With replaceOnSuccess: hide the thank-you panel after this many ms and show an empty form again. */
+  resetAfterMs?: number;
 };
 
 const submitStyles = {
@@ -27,10 +29,20 @@ export function ActionForm({
   className = "",
   variant = "site",
   replaceOnSuccess = false,
+  resetAfterMs,
 }: Props) {
   const [state, formAction, pending] = useActionState(action, null);
+  // The result whose thank-you panel has already been closed by the timer.
+  const [dismissed, setDismissed] = useState<FormState>(null);
+  const showThanks = replaceOnSuccess && Boolean(state?.ok) && state !== dismissed;
 
-  if (replaceOnSuccess && state?.ok) {
+  useEffect(() => {
+    if (!showThanks || !resetAfterMs) return;
+    const timer = setTimeout(() => setDismissed(state), resetAfterMs);
+    return () => clearTimeout(timer);
+  }, [showThanks, resetAfterMs, state]);
+
+  if (showThanks && state?.ok) {
     return (
       <div role="status" className="flex flex-col items-center gap-3 py-10 text-center">
         <CircleCheck className="h-12 w-12 text-brand" />
@@ -56,7 +68,7 @@ export function ActionForm({
           {state.error}
         </p>
       )}
-      {state?.ok && (
+      {state?.ok && !replaceOnSuccess && (
         <p role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
           {state.ok}
         </p>

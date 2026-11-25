@@ -1,6 +1,7 @@
 import { Gem, Rocket, Trophy, Users } from "lucide-react";
 import { RefBanner, RefCards, RefFeatures, RefHero, RefPage, u } from "@/components/ref";
-import { getPage } from "@/lib/cms";
+import { JobList } from "@/components/careers/JobList";
+import { getOpenJobs, getPage } from "@/lib/cms";
 import { pageMetadata } from "@/lib/seo";
 
 export const generateMetadata = () => pageMetadata("careers");
@@ -9,7 +10,7 @@ const icons = [Rocket, Users, Gem, Trophy];
 
 // All numbers below are measurements from the design, in design units (see components/ref).
 export default async function CareersPage() {
-  const { content } = await getPage("careers");
+  const [{ content }, jobs] = await Promise.all([getPage("careers"), getOpenJobs()]);
   return (
     <RefPage bottom={14}>
 
@@ -19,7 +20,7 @@ export default async function CareersPage() {
         eyebrow={content.eyebrow}
         title={content.title}
         text={content.text}
-        cta={{ label: content.cta, href: "/careers/positions" }}
+        cta={{ label: content.cta, href: "#open-positions" }}
         textWidth={170}
       />
 
@@ -29,6 +30,11 @@ export default async function CareersPage() {
       <RefCards top={14} items={content.cards} icons={icons} />
 
       <RefFeatures {...content.more} />
+
+      <section id="open-positions" className="scroll-mt-28" style={{ marginTop: u(12) }}>
+        <h2 className="ref-h2">{content.jobsTitle}</h2>
+        <JobList jobs={jobs} emptyText={content.jobsEmpty} />
+      </section>
 
       <RefBanner top={9} text={content.bannerText} href="/careers/positions" dark />
     </RefPage>

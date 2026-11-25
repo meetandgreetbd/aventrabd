@@ -1,7 +1,7 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { z } from "zod";
 import { getDb, schema } from "@/db";
 import { getSettings, isJobAcceptingApplications } from "@/lib/cms";
@@ -12,22 +12,30 @@ import { firstError, str, type FormState } from "../form";
 const TRY_LATER = "Something went wrong on our side. Please try again in a moment.";
 
 async function notify(kind: "contact" | "application", subject: string, text: string, replyTo: string) {
-  const apiKey = process.env.RESEND_API_KEY;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
   const settings = await getSettings();
   const to = (kind === "contact" ? settings.contactNotifyEmail : settings.applicationNotifyEmail)
     .split(",")
     .map((part) => part.trim())
     .filter(Boolean);
-  if (!apiKey || to.length === 0) return;
+  if (!user || !pass || to.length === 0) return;
   try {
-    const { error } = await new Resend(apiKey).emails.send({
-      from: process.env.CONTACT_FROM_EMAIL || "Aventra Website <onboarding@resend.dev>",
+    const port = Number(process.env.SMTP_PORT) || 465;
+    const transport = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port,
+      secure: port === 465,
+      auth: { user, pass },
+    });
+    // Gmail only sends as the signed-in account, so the address here must be SMTP_USER (or an alias of it).
+    await transport.sendMail({
+      from: process.env.CONTACT_FROM_EMAIL || `Aventra Website <${user}>`,
       to,
       subject,
       text,
       replyTo,
     });
-    if (error) console.error("[email] send failed:", error);
   } catch (error) {
     // The submission is already saved in the admin, so an email failure must not fail the form.
     console.error("[email] send failed:", error);

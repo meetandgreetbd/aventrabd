@@ -35,9 +35,11 @@ Editors can manage content; only admins can change settings and users.
 
 ## Email notifications (optional)
 
-Messages and applications are always saved in the admin. To also receive them by email, create a
-[Resend](https://resend.com) account, set `RESEND_API_KEY` and `CONTACT_FROM_EMAIL` in `.env`, then enter
-the address to notify under **Contact info & settings**. A real "from" address needs a verified domain in Resend.
+Messages and applications are always saved in the admin. To also receive them by email, the site sends
+through Gmail SMTP. Turn on 2-Step Verification for the sending Gmail account, create an
+[App Password](https://myaccount.google.com/apppasswords), set `SMTP_USER` (the Gmail address) and `SMTP_PASS`
+(the app password) in `.env`, then enter the address to notify under **Contact info & settings**.
+Another SMTP provider works too: set `SMTP_HOST` and `SMTP_PORT` as well.
 
 ## Logo and artwork
 
@@ -59,7 +61,7 @@ The host must offer **Setup Node.js App** with Node 20.9 or newer.
    - `public/` → to `public/` inside that folder
 4. **Setup Node.js App:** application root = that folder, startup file = `server.js`.
    Add the environment variables from `.env.example` (`DATABASE_URL`, `SITE_URL` with `https://`, `ADMIN_EMAIL`,
-   `ADMIN_PASSWORD`, `STORAGE_DIR`, and the Resend ones if used). Set `STORAGE_DIR` to a folder **outside** the app folder,
+   `ADMIN_PASSWORD`, `STORAGE_DIR`, and the SMTP ones if used). Set `STORAGE_DIR` to a folder **outside** the app folder,
    for example `/home/USER/aventra-storage`, so uploads survive the next deployment.
 5. Restart the app and log in at `https://your-domain/admin/login` with the default admin. Use a strong
    `ADMIN_PASSWORD` on the live server, or change it under **My account** straight after the first login.

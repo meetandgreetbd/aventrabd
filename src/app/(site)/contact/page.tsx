@@ -86,7 +86,7 @@ export default async function ContactPage() {
             style={{ width: `max(300px, ${u(178)})`, maxWidth: "100%", padding: u(9) }}
           >
           <h2 className="sr-only">Send us a message</h2>
-          <ActionForm action={sendMessage} submitLabel={content.formButton} className="space-y-4" replaceOnSuccess>
+          <ActionForm action={sendMessage} submitLabel={content.formButton} className="space-y-4" replaceOnSuccess resetAfterMs={5000}>
             <SiteField label="Your Name" name="name" required autoComplete="name" />
             <SiteField label="Your Email" name="email" type="email" required autoComplete="email" />
             <SiteField label="Your Message" name="message" required rows={4} />
